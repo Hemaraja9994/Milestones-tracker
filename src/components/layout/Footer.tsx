@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import BrandMark from '@/components/ui/BrandMark';
+import { Attribution } from '@/components/layout/Attribution';
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -58,7 +59,9 @@ export default function Footer() {
           <FooterColumn title="Workspaces" links={workspaceLinks} />
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-line-rule pt-6 text-xs text-ink-muted sm:flex-row">
+        <Attribution />
+
+        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-line-rule pt-6 text-xs text-ink-muted sm:flex-row">
           <p>© {new Date().getFullYear()} MilestonePath – Child Developmental &amp; Speech-Language Tracker.</p>
           <p>Built for clinical excellence &amp; family empowerment</p>
         </div>

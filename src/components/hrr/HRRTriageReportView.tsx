@@ -19,6 +19,7 @@ import { evaluateHRRTriage, HRRTriageResult } from '@/lib/hrrTriageEngine';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { useLanguage } from '@/context/LanguageContext';
 import BrandMark from '@/components/ui/BrandMark';
+import { AttributionLine } from '@/components/layout/Attribution';
 import { Button, Badge, StatusDotBadge } from '@/components/ui/Primitives';
 
 interface HRRTriageReportViewProps {
@@ -249,6 +250,7 @@ export default function HRRTriageReportView({ child, hrrRecord }: HRRTriageRepor
         <div className="border-t border-slate-200 dark:border-slate-800 pt-4 text-[10px] text-slate-400 leading-relaxed">
           <p className="font-semibold text-slate-500 dark:text-slate-400">CLINICAL TRIAGE DISCLAIMER:</p>
           <p>{triageResult.educationalDisclaimer[language] || triageResult.educationalDisclaimer.en}</p>
+          <AttributionLine className="mt-3" />
         </div>
 
       </div>
