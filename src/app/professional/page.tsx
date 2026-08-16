@@ -1,32 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { 
-  Users, 
-  UserPlus, 
-  Calendar, 
-  Search, 
-  Filter, 
-  Sparkles, 
-  FileText, 
-  Stethoscope, 
-  ArrowRight,
-  Ear,
-  Brain,
-  AlertTriangle,
-  Plus
-} from 'lucide-react';
+import { Search, ShieldAlert, ArrowRight } from 'lucide-react';
 import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
-import { ChildProfile } from '@/types';
-import { Card, Badge, Button } from '@/components/ui/Primitives';
+import { computeClinicalSnapshot } from '@/lib/calculationEngine';
+import { ChildProfile, AssessmentRecord } from '@/types';
+import { Badge, Button, GaugeRow, Stat } from '@/components/ui/Primitives';
 
 export default function ProfessionalDashboard() {
-  const router = useRouter();
-  const { childrenList, createOrUpdateChild, setActiveChild, assessments } = useChild();
+  const { childrenList, createOrUpdateChild, setActiveChild, activeChild, assessments, saveCurrentAssessment } =
+    useChild();
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -37,12 +23,48 @@ export default function ProfessionalDashboard() {
   const [gestationalWeeks, setGestationalWeeks] = useState(40);
   const [languagesStr, setLanguagesStr] = useState('Kannada, English');
   const [medicalNotes, setMedicalNotes] = useState('');
-  const [hearingStatus, setHearingStatus] = useState<'passed' | 'referred' | 'pending' | 'unknown'>('passed');
-
-  const filteredChildren = childrenList.filter((child) =>
-    child.nameOrInitials.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    child.primaryLanguages?.some(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
+  const [hearingStatus, setHearingStatus] = useState<'passed' | 'referred' | 'pending' | 'unknown'>(
+    'passed'
   );
+
+  const filteredChildren = childrenList.filter(
+    (child) =>
+      child.nameOrInitials.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      child.primaryLanguages?.some((l) => l.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const focusChild = activeChild || childrenList[0] || null;
+  const focusAssessment = focusChild
+    ? assessments.find((a) => a.childId === focusChild.id) || null
+    : null;
+
+  const focusAges = useMemo(
+    () =>
+      focusChild ? calculateChildAges(focusChild.dateOfBirth, focusChild.gestationalWeeks) : null,
+    [focusChild]
+  );
+
+  const snapshot = useMemo(
+    () =>
+      focusAges
+        ? computeClinicalSnapshot(
+            focusAges.effectiveAgeMonths,
+            focusAssessment?.milestoneStatuses || {},
+            focusChild || undefined
+          )
+        : null,
+    [focusAges, focusAssessment, focusChild]
+  );
+
+  const gaugeCeiling = snapshot && focusAges
+    ? Math.max(
+        focusAges.effectiveAgeMonths,
+        snapshot.estimatedReceptiveAgeMonths,
+        snapshot.estimatedExpressiveAgeMonths,
+        snapshot.estimatedAuditoryAgeMonths,
+        12
+      ) * 1.15
+    : 1;
 
   const handleCreateChild = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +75,7 @@ export default function ProfessionalDashboard() {
       nameOrInitials: nameOrInitials.trim(),
       dateOfBirth: dob,
       gestationalWeeks: Number(gestationalWeeks),
-      primaryLanguages: languagesStr.split(',').map(s => s.trim()).filter(Boolean),
+      primaryLanguages: languagesStr.split(',').map((s) => s.trim()).filter(Boolean),
       medicalNotes,
       hearingScreeningStatus: hearingStatus,
       riskFactors: Number(gestationalWeeks) < 37 ? [`Prematurity (${gestationalWeeks} wks)`] : [],
@@ -63,279 +85,317 @@ export default function ProfessionalDashboard() {
 
     createOrUpdateChild(newChild);
     setShowModal(false);
-    // Reset form
     setNameOrInitials('');
     setMedicalNotes('');
   };
 
+  const handleSummaryChange = (value: string) => {
+    if (!focusChild) return;
+    const base: AssessmentRecord = focusAssessment || {
+      id: `sess_${focusChild.id}_${Date.now()}`,
+      childId: focusChild.id,
+      sessionDate: new Date().toISOString().split('T')[0],
+      sessionNumber: 1,
+      examinerName: 'Consultant SLP / Pediatric Evaluator',
+      examinerRole: 'Speech-Language Pathologist',
+      milestoneStatuses: {},
+      milestoneNotes: {},
+    };
+    saveCurrentAssessment({ ...base, overallClinicalNotes: value });
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
-              <Stethoscope className="h-5 w-5" />
+    <div className="bg-surface-canvas">
+      {/* ================= Portal header ================= */}
+      <div className="border-b border-line-rule bg-surface-raised">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-end justify-between gap-6 px-[18px] pb-7 pt-8 sm:px-6 lg:px-9">
+          <div>
+            <div className="eyebrow tracking-[0.1em] text-brand-600 dark:text-brand-400">
+              {t.nav.professional_portal}
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="mt-2.5 font-display text-[30px] font-extrabold leading-[1.1] text-ink sm:text-[38px]">
               {t.professional.dashboard_title}
             </h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Clinical developmental surveillance, gestational age adjustment, and receptive-expressive age calculations
-          </p>
+
+          <Button variant="primary" size="md" onClick={() => setShowModal(true)}>
+            {t.professional.new_patient}
+          </Button>
         </div>
-
-        <Button onClick={() => setShowModal(true)} variant="primary" size="md">
-          <Plus className="h-4 w-4" />
-          <span>{t.professional.new_patient}</span>
-        </Button>
       </div>
 
-      {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.professional.total_patients}</span>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{childrenList.length}</p>
-          </div>
-        </Card>
-
-        <Card className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-            <FileText className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.professional.sessions_logged}</span>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{assessments.length}</p>
-          </div>
-        </Card>
-
-        <Card className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
-            <Calendar className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t.professional.last_session}</span>
-            <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
-              {assessments.length > 0 ? assessments[0].sessionDate : 'No sessions recorded'}
-            </p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Patient Search & Filter */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder={t.common.search}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+      {/* ================= Stat strip ================= */}
+      <div className="border-b border-line-warm bg-line-warm">
+        <div className="mx-auto grid max-w-[1240px] gap-px sm:grid-cols-3">
+          <Stat label={t.professional.total_patients} value={childrenList.length} />
+          <Stat label={t.professional.sessions_logged} value={assessments.length} />
+          <Stat
+            label={t.professional.last_session}
+            value={assessments.length > 0 ? assessments[0].sessionDate : '—'}
+            suffix={assessments.length > 0 ? undefined : 'No sessions recorded'}
           />
         </div>
       </div>
 
-      {/* Patient Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredChildren.map((child) => {
-          const ageResult = calculateChildAges(child.dateOfBirth, child.gestationalWeeks);
-          const childAssessments = assessments.filter(a => a.childId === child.id);
+      {/* ================= Workspace ================= */}
+      <div className="mx-auto grid max-w-[1240px] gap-6 px-[18px] py-7 sm:px-6 lg:grid-cols-[1.35fr_1fr] lg:px-9 lg:py-9">
+        {/* -------- Session history -------- */}
+        <section className="overflow-hidden rounded-card border border-line-warm bg-surface-raised">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-rule px-5 py-4 sm:px-6">
+            <h2 className="font-sans text-sm font-semibold text-ink">{t.professional.history}</h2>
+            <label className="relative">
+              <span className="sr-only">{t.common.search}</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+              <input
+                type="text"
+                placeholder={t.common.search}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="focus-ring min-h-[40px] w-56 rounded-xl border border-line-warm bg-surface-raised pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-muted"
+              />
+            </label>
+          </div>
 
-          return (
-            <Card key={child.id} className="flex flex-col justify-between hover:border-brand-400 hover:shadow-elevated transition-all">
-              
-              <div>
-                {/* Header: Name, Prematurity Badge */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                      {child.nameOrInitials}
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      DOB: {child.dateOfBirth}
-                    </p>
-                  </div>
-                  {ageResult.isPremature && (
-                    <Badge variant="warning" className="text-[10px]">
-                      Preterm ({child.gestationalWeeks}w)
-                    </Badge>
-                  )}
-                </div>
+          {filteredChildren.length === 0 ? (
+            <p className="px-6 py-12 text-center text-[13px] text-ink-muted">
+              {childrenList.length === 0
+                ? 'No child profiles yet. Create one to begin developmental surveillance.'
+                : 'No child profile matches this search.'}
+            </p>
+          ) : (
+            <ul>
+              {filteredChildren.map((child) => {
+                const ages = calculateChildAges(child.dateOfBirth, child.gestationalWeeks);
+                const sessions = assessments.filter((a) => a.childId === child.id);
+                const meta = [
+                  ages.isPremature
+                    ? `Corrected Age ${ages.effectiveAgeMonths} mo · ${child.gestationalWeeks} Gestational Weeks`
+                    : `${ages.chronologicalText[language] || ages.chronologicalText.en}`,
+                  `Home Languages: ${child.primaryLanguages?.join(', ') || 'English'}`,
+                  `Newborn Hearing Screening: ${
+                    child.hearingScreeningStatus
+                      ? child.hearingScreeningStatus.charAt(0).toUpperCase() +
+                        child.hearingScreeningStatus.slice(1)
+                      : 'Unknown'
+                  }`,
+                  `${sessions.length} sessions logged`,
+                ].join(' · ');
 
-                {/* Age & Languages Box */}
-                <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 space-y-2 text-xs mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t.common.chronological_age}:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      {ageResult.chronologicalText[language] || ageResult.chronologicalText.en}
-                    </span>
-                  </div>
-                  {ageResult.isPremature && (
-                    <div className="flex justify-between">
-                      <span className="text-amber-600 dark:text-amber-400 font-medium">{t.common.corrected_age}:</span>
-                      <span className="font-semibold text-amber-700 dark:text-amber-300">
-                        {ageResult.correctedText[language] || ageResult.correctedText.en}
-                      </span>
+                return (
+                  <li
+                    key={child.id}
+                    className="flex flex-wrap items-center justify-between gap-4 border-b border-line-hair px-5 py-4 last:border-b-0 sm:px-6"
+                  >
+                    <div className="min-w-[16ch] flex-1">
+                      <div className="font-sans text-[15px] font-semibold text-ink">
+                        {child.nameOrInitials} — {ages.chronologicalText[language] || ages.chronologicalText.en}
+                      </div>
+                      <div className="mt-1.5 text-xs leading-[1.6] text-ink-muted">{meta}</div>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t.common.primary_languages}:</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-300">
-                      {child.primaryLanguages?.join(', ') || 'English'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t.common.hearing_status}:</span>
-                    <span className={`font-semibold uppercase text-[11px] ${
-                      child.hearingScreeningStatus === 'passed' ? 'text-emerald-600' : 'text-amber-600'
-                    }`}>
-                      {child.hearingScreeningStatus || 'Passed'}
-                    </span>
-                  </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      {child.hearingScreeningStatus === 'referred' && (
+                        <Badge variant="danger">{t.common.red_flag}</Badge>
+                      )}
+                      {ages.isPremature && <Badge variant="warning">Preterm ({child.gestationalWeeks}w)</Badge>}
+                      <Link
+                        href={`/professional/${child.id}`}
+                        onClick={() => setActiveChild(child)}
+                        className="focus-ring inline-flex min-h-[40px] items-center rounded-[10px] border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+                      >
+                        {t.professional.view_profile}
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        {/* -------- Snapshot + summary -------- */}
+        <div className="flex flex-col gap-4">
+          <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
+            <h2 className="font-sans text-sm font-semibold text-ink">
+              {t.professional.estimated_ages}
+            </h2>
+
+            {snapshot && focusAges && focusChild ? (
+              <>
+                <p className="mt-1.5 text-xs text-ink-muted">
+                  {focusChild.nameOrInitials} · target {focusAges.effectiveAgeMonths} mo
+                  {focusAges.isPremature ? ' (corrected)' : ''}
+                </p>
+                <div className="mt-5 flex flex-col gap-[18px]">
+                  <GaugeRow
+                    label={t.professional.receptive_age}
+                    valueLabel={`${snapshot.estimatedReceptiveAgeMonths} mo`}
+                    value={snapshot.estimatedReceptiveAgeMonths}
+                    max={gaugeCeiling}
+                    colorClass="bg-brand-600 dark:bg-brand-400"
+                  />
+                  <GaugeRow
+                    label={t.professional.expressive_age}
+                    valueLabel={`${snapshot.estimatedExpressiveAgeMonths} mo`}
+                    value={snapshot.estimatedExpressiveAgeMonths}
+                    max={gaugeCeiling}
+                    colorClass="bg-emerging"
+                  />
+                  <GaugeRow
+                    label={t.professional.auditory_age}
+                    valueLabel={`${snapshot.estimatedAuditoryAgeMonths} mo`}
+                    value={snapshot.estimatedAuditoryAgeMonths}
+                    max={gaugeCeiling}
+                    colorClass="bg-achieved"
+                  />
                 </div>
+              </>
+            ) : (
+              <p className="mt-4 text-[13px] leading-[1.6] text-ink-muted">
+                Create a child profile to see estimated receptive, expressive and auditory ages.
+              </p>
+            )}
+          </section>
 
-                {/* Medical / Risk notes */}
-                {child.medicalNotes && (
-                  <p className="text-xs text-slate-600 dark:text-slate-400 italic line-clamp-2 mb-4">
-                    "{child.medicalNotes}"
-                  </p>
-                )}
-              </div>
+          <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
+            <h2 className="font-sans text-sm font-semibold text-ink">
+              {t.professional.session_summary}
+            </h2>
+            <textarea
+              rows={3}
+              disabled={!focusChild}
+              value={focusAssessment?.overallClinicalNotes || ''}
+              onChange={(e) => handleSummaryChange(e.target.value)}
+              placeholder={t.professional.clinical_notes_placeholder}
+              className="focus-ring mt-3.5 w-full rounded-xl border border-line-rule bg-surface-canvas p-3.5 text-[13px] leading-[1.6] text-ink placeholder:text-ink-warm disabled:opacity-60"
+            />
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              <Link
+                href={focusChild ? `/professional/${focusChild.id}/report` : '/professional'}
+                aria-disabled={!focusChild}
+                className={`focus-ring inline-flex min-h-[46px] items-center rounded-[11px] bg-ink px-[18px] text-[13px] font-semibold text-surface-raised ${
+                  focusChild ? '' : 'pointer-events-none opacity-50'
+                }`}
+              >
+                {t.common.export_pdf}
+              </Link>
+              <Link
+                href={focusChild ? `/professional/${focusChild.id}/report` : '/professional'}
+                aria-disabled={!focusChild}
+                className={`focus-ring inline-flex min-h-[46px] items-center rounded-[11px] border border-line-warm px-[18px] text-[13px] font-semibold text-ink-body ${
+                  focusChild ? '' : 'pointer-events-none opacity-50'
+                }`}
+              >
+                {t.common.print}
+              </Link>
+            </div>
+          </section>
 
-              {/* Action Button */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">
-                  {childAssessments.length} sessions logged
+          {/* HRR moved out of the top bar — reached from the portal it belongs to. */}
+          <Link
+            href="/high-risk-register"
+            className="focus-ring flex items-center justify-between gap-4 rounded-card border border-line-warm border-t-4 border-t-risk bg-surface-raised p-5 transition-colors hover:bg-surface-tint sm:p-6"
+          >
+            <span className="flex items-start gap-3.5">
+              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-risk" strokeWidth={1.8} />
+              <span>
+                <span className="block font-sans text-sm font-semibold text-ink">{t.hrr.title}</span>
+                <span className="mt-1.5 block text-xs leading-[1.6] text-ink-muted">
+                  {t.hrr.subtitle}
                 </span>
-
-                <Link
-                  href={`/professional/${child.id}`}
-                  onClick={() => setActiveChild(child)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-                >
-                  <span>{t.professional.view_profile}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-
-            </Card>
-          );
-        })}
+              </span>
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={2.2} />
+          </Link>
+        </div>
       </div>
 
-      {/* New Child Modal */}
+      {/* ================= New child modal ================= */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-150">
-            
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800 mb-4">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-brand-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-panel border border-line-warm bg-surface-raised p-6 shadow-elevated">
+            <div className="mb-5 flex items-center justify-between border-b border-line-rule pb-4">
+              <h2 className="font-display text-[22px] font-extrabold text-ink">
                 {t.professional.new_patient}
               </h2>
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold"
+                aria-label={t.common.close}
+                className="focus-ring flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:text-ink"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateChild} className="space-y-4 text-xs">
-              
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.common.child_name} *
-                </label>
+            <form onSubmit={handleCreateChild} className="space-y-4 text-[13px]">
+              <Field label={`${t.common.child_name} *`}>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Aarav K. or Patient #1042"
                   value={nameOrInitials}
                   onChange={(e) => setNameOrInitials(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                  className={inputClass}
                 />
-              </div>
+              </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.dob} *
-                  </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label={`${t.common.dob} *`}>
                   <input
                     type="date"
                     required
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                    className={inputClass}
                   />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.common.gestational_age} (Weeks)
-                  </label>
+                </Field>
+                <Field label={`${t.common.gestational_age} (Weeks)`}>
                   <input
                     type="number"
                     min="24"
                     max="42"
                     value={gestationalWeeks}
                     onChange={(e) => setGestationalWeeks(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                    className={inputClass}
                   />
-                </div>
+                </Field>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.common.primary_languages} (comma-separated)
-                </label>
+              <Field label={`${t.common.primary_languages} (comma-separated)`}>
                 <input
                   type="text"
                   placeholder="e.g. Kannada, English, Hindi"
                   value={languagesStr}
                   onChange={(e) => setLanguagesStr(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                  className={inputClass}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.common.hearing_status}
-                </label>
+              <Field label={t.common.hearing_status}>
                 <select
                   value={hearingStatus}
                   onChange={(e: any) => setHearingStatus(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                  className={inputClass}
                 >
                   <option value="passed">Passed (OAE / ABR normal)</option>
                   <option value="referred">Referred / Follow-up Needed</option>
                   <option value="pending">Pending</option>
                   <option value="unknown">Unknown</option>
                 </select>
-              </div>
+              </Field>
 
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Medical / Developmental History Notes
-                </label>
+              <Field label="Medical / Developmental History Notes">
                 <textarea
                   rows={2}
                   placeholder="e.g. NICU history, family history of speech delay, otitis media history..."
                   value={medicalNotes}
                   onChange={(e) => setMedicalNotes(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-brand-500 focus:outline-none"
+                  className={inputClass}
                 />
-              </div>
+              </Field>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex justify-end gap-2.5 border-t border-line-rule pt-4">
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>
                   {t.common.cancel}
                 </Button>
@@ -343,13 +403,22 @@ export default function ProfessionalDashboard() {
                   {t.common.save}
                 </Button>
               </div>
-
             </form>
-
           </div>
         </div>
       )}
-
     </div>
+  );
+}
+
+const inputClass =
+  'focus-ring w-full rounded-xl border border-line-warm bg-surface-raised p-2.5 text-[13px] text-ink placeholder:text-ink-warm';
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block font-semibold text-ink-body">{label}</span>
+      {children}
+    </label>
   );
 }

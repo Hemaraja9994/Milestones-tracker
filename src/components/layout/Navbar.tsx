@@ -1,249 +1,187 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { 
-  Stethoscope, 
-  Heart, 
-  Globe, 
-  Sun, 
-  Moon, 
-  Menu, 
-  X, 
-  Sparkles, 
-  BookOpen, 
-  Ear, 
-  ShieldAlert, 
-  FileText,
-  Activity
-} from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useChild } from '@/context/ChildContext';
-import { Language, UserRole } from '@/types';
+import { Language } from '@/types';
+import BrandMark from '@/components/ui/BrandMark';
 
+/**
+ * Header cut to four links: Home, Professional Portal, Parent Tracker, Clinical
+ * Hub. The High Risk Register, Speech Sound Matrix, Auditory and Sources
+ * destinations are reached from the module grids inside the portal they belong
+ * to rather than from the top bar.
+ */
 export default function Navbar() {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname = usePathname() || '/';
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { activeRole, setActiveRole } = useChild();
+  const { setActiveRole } = useChild();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-
-  const toggleRole = (newRole: UserRole) => {
-    setActiveRole(newRole);
-    if (newRole === 'professional') {
-      router.push('/professional');
-    } else {
-      router.push('/parent');
-    }
-  };
 
   const navLinks = [
+    { href: '/', label: t.nav.home, match: (p: string) => p === '/' },
     {
-      href: activeRole === 'professional' ? '/professional' : '/parent',
-      label: activeRole === 'professional' ? t.nav.professional_portal : t.nav.parent_tracker,
-      icon: activeRole === 'professional' ? Stethoscope : Heart,
-      active: pathname.startsWith('/professional') || pathname.startsWith('/parent'),
+      href: '/professional',
+      label: t.nav.professional_portal,
+      match: (p: string) => p.startsWith('/professional') || p.startsWith('/high-risk-register'),
+      role: 'professional' as const,
     },
     {
-      href: '/high-risk-register',
-      label: t.nav.hrr,
-      icon: ShieldAlert,
-      active: pathname.startsWith('/high-risk-register'),
-    },
-    {
-      href: '/auditory-development',
-      label: t.nav.auditory_guide,
-      icon: Ear,
-      active: pathname.startsWith('/auditory-development'),
-    },
-    {
-      href: '/speech-sound-matrix',
-      label: t.nav.speech_matrix,
-      icon: Activity,
-      active: pathname.startsWith('/speech-sound-matrix'),
+      href: '/parent',
+      label: t.nav.parent_tracker,
+      match: (p: string) => p.startsWith('/parent'),
+      role: 'parent' as const,
     },
     {
       href: '/clinical-reference',
       label: t.nav.clinical_reference,
-      icon: BookOpen,
-      active: pathname.startsWith('/clinical-reference'),
-    },
-    {
-      href: '/sources',
-      label: t.nav.sources,
-      icon: FileText,
-      active: pathname.startsWith('/sources'),
+      match: (p: string) =>
+        p.startsWith('/clinical-reference') ||
+        p.startsWith('/auditory-development') ||
+        p.startsWith('/speech-sound-matrix') ||
+        p.startsWith('/sources'),
     },
   ];
 
-  const languages: { code: Language; label: string; script: string }[] = [
-    { code: 'en', label: 'English', script: 'EN' },
-    { code: 'hi', label: 'हिन्दी', script: 'HI' },
-    { code: 'kn', label: 'ಕನ್ನಡ', script: 'KN' },
+  // Pathway is implied by the destination — one colour per pathway, everywhere.
+  useEffect(() => {
+    if (pathname.startsWith('/parent')) setActiveRole('parent');
+    else if (pathname.startsWith('/professional') || pathname.startsWith('/high-risk-register')) {
+      setActiveRole('professional');
+    }
+  }, [pathname, setActiveRole]);
+
+  const languages: { code: Language; short: string; label: string }[] = [
+    { code: 'en', short: 'EN', label: 'English' },
+    { code: 'hi', short: 'हिं', label: 'हिन्दी' },
+    { code: 'kn', short: 'ಕನ್ನ', label: 'ಕನ್ನಡ' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/90 transition-colors">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                Milestone<span className="text-brand-600 dark:text-brand-400">Path</span>
-              </span>
-              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200/60 dark:border-brand-800/60">
-                CDC • JCIH • AIISH
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-              {t.app.subtitle}
-            </p>
-          </div>
+    <header className="sticky top-0 z-40 w-full border-b border-line-rule bg-surface-raised">
+      <div className="mx-auto flex h-[60px] max-w-[1240px] items-center justify-between gap-8 px-4 sm:px-6 lg:h-[72px] lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <BrandMark size={26} />
+          <span className="font-display text-[19px] font-extrabold tracking-[-0.01em] text-ink lg:text-[21px]">
+            MilestonePath
+          </span>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <nav className="hidden xl:flex items-center gap-1">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-ink-body lg:flex">
           {navLinks.map((link) => {
-            const Icon = link.icon;
+            const active = link.match(pathname);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
-                  link.active
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/70 dark:text-brand-300 border border-brand-200/60 dark:border-brand-800/60'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
-                }`}
+                onClick={() => link.role && setActiveRole(link.role)}
+                aria-current={active ? 'page' : undefined}
+                className={
+                  active
+                    ? 'border-b-2 border-brand-600 pb-0.5 font-semibold text-ink dark:border-brand-400'
+                    : 'border-b-2 border-transparent pb-0.5 transition-colors hover:text-ink'
+                }
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="whitespace-nowrap">{link.label}</span>
+                {link.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Right Controls: Role Switcher, Language Switcher, Theme Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          
-          {/* Role Toggle Pill */}
-          <div className="flex items-center rounded-full bg-slate-100 p-1 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <button
-              onClick={() => toggleRole('professional')}
-              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
-                activeRole === 'professional'
-                  ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-brand-300 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-              title={t.roles.professional_desc}
-            >
-              <Stethoscope className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Clinician</span>
-            </button>
-            <button
-              onClick={() => toggleRole('parent')}
-              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
-                activeRole === 'parent'
-                  ? 'bg-white text-rose-600 shadow-sm dark:bg-slate-700 dark:text-rose-400 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-              title={t.roles.parent_desc}
-            >
-              <Heart className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Parent</span>
-            </button>
-          </div>
-
-          {/* Persistent Language Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60 transition-colors"
-              aria-label="Select Language"
-            >
-              <Globe className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-              <span className="font-semibold">{languages.find(l => l.code === language)?.script}</span>
-            </button>
-
-            {langDropdownOpen && (
-              <div 
-                className="absolute right-0 mt-2 w-36 rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 z-50 animate-in fade-in zoom-in-95 duration-100"
-                onMouseLeave={() => setLangDropdownOpen(false)}
-              >
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => {
-                      setLanguage(l.code);
-                      setLangDropdownOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs transition-colors ${
-                      language === l.code
-                        ? 'bg-brand-50 font-bold text-brand-700 dark:bg-brand-950/60 dark:text-brand-300'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    <span>{l.label}</span>
-                    <span className="text-[10px] text-slate-400 uppercase">{l.code}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700/60 transition-colors"
-            aria-label={t.nav.toggle_theme}
+        <div className="flex items-center gap-2.5">
+          {/* Segmented language switcher — always visible, never behind a menu */}
+          <div
+            role="group"
+            aria-label={t.nav.select_language}
+            className="hidden rounded-full border border-line-warm bg-surface-sunken p-[3px] text-xs font-semibold sm:flex"
           >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Moon className="h-4 w-4 text-slate-600" />
-            )}
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => setLanguage(l.code)}
+                aria-pressed={language === l.code}
+                title={l.label}
+                lang={l.code}
+                className={`focus-ring rounded-full px-3 py-1.5 transition-colors ${
+                  language === l.code
+                    ? 'bg-ink text-surface-raised'
+                    : 'text-ink-muted hover:text-ink'
+                }`}
+              >
+                {l.short}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={t.nav.toggle_theme}
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-line-warm text-ink-body transition-colors hover:text-ink lg:h-9 lg:w-9"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {/* Mobile Hamburger Menu Toggle */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 xl:hidden"
+            aria-expanded={mobileMenuOpen}
             aria-label="Toggle navigation menu"
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-xl border border-line-warm text-ink-body lg:hidden"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Phone drawer — all actions ≥50px */}
       {mobileMenuOpen && (
-        <div className="border-b border-slate-200 bg-white px-4 pt-2 pb-4 dark:border-slate-800 dark:bg-slate-900 xl:hidden space-y-1">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                  link.active
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+        <div className="border-t border-line-rule bg-surface-raised px-4 pb-4 pt-2 lg:hidden">
+          <nav className="flex flex-col">
+            {navLinks.map((link) => {
+              const active = link.match(pathname);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => {
+                    link.role && setActiveRole(link.role);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex min-h-[52px] items-center rounded-xl px-3 text-[15px] ${
+                    active ? 'font-semibold text-ink' : 'text-ink-body'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mt-2 flex gap-2 border-t border-line-rule pt-3 sm:hidden">
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => setLanguage(l.code)}
+                aria-pressed={language === l.code}
+                lang={l.code}
+                className={`focus-ring min-h-[46px] flex-1 rounded-xl border text-sm font-semibold transition-colors ${
+                  language === l.code
+                    ? 'border-ink bg-ink text-surface-raised'
+                    : 'border-line-warm text-ink-body'
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
+                {l.short}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </header>

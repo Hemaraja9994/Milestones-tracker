@@ -3,203 +3,235 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  Stethoscope, 
-  Heart, 
-  Sparkles, 
-  Brain, 
-  Ear, 
-  MessageSquare, 
-  Activity, 
-  CheckCircle2, 
-  ShieldCheck, 
-  ArrowRight,
-  Globe2,
-  FileText,
-  Users
-} from 'lucide-react';
+import { Stethoscope, Heart, Ear, Activity, Brain, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useChild } from '@/context/ChildContext';
-import { Card, Badge, Button } from '@/components/ui/Primitives';
 
 export default function HomePage() {
   const router = useRouter();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const { setActiveRole } = useChild();
 
   const handleRoleSelect = (role: 'professional' | 'parent') => {
     setActiveRole(role);
-    if (role === 'professional') {
-      router.push('/professional');
-    } else {
-      router.push('/parent');
-    }
+    router.push(role === 'professional' ? '/professional' : '/parent');
   };
 
   return (
-    <div className="space-y-16 pb-16">
-      
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-b from-white via-brand-50/20 to-transparent dark:from-slate-900 dark:via-slate-900/60 dark:to-transparent">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          
-          {/* Authoritative Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-3.5 py-1 text-xs font-semibold text-brand-800 dark:border-brand-800/60 dark:bg-brand-950/60 dark:text-brand-300 mb-6 shadow-sm">
-            <Sparkles className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-            <span>CDC 2022 • ASHA • Northern & Downs • AIISH Mysuru • Crowe & McLeod</span>
+    <div className="bg-surface-canvas">
+      {/* ================= Hero ================= */}
+      <section className="border-b border-line-rule bg-gradient-to-b from-surface-raised to-surface-canvas">
+        <div className="mx-auto max-w-[1240px] px-[18px] py-12 text-center sm:px-6 lg:px-8 lg:py-[72px]">
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-line-warm bg-surface-raised px-3.5 py-2 text-[11px] font-semibold text-ink-body sm:text-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-600 dark:bg-brand-400" />
+            <span>CDC 2022 • ASHA • Northern &amp; Downs • AIISH Mysuru • Crowe &amp; McLeod</span>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-tight sm:leading-tight">
+          <h1 className="mx-auto mt-6 max-w-[15ch] font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.025em] text-ink sm:text-[54px] lg:text-[68px]">
             {t.app.title}
           </h1>
-          <p className="mt-3 text-lg sm:text-2xl font-semibold text-brand-600 dark:text-brand-400">
+          <p className="mx-auto mt-3.5 max-w-[34ch] text-[17px] font-medium leading-[1.35] text-brand-600 dark:text-brand-400 lg:text-[22px]">
             {t.app.subtitle}
           </p>
-          <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            {t.app.tagline}. Evidence-based developmental tracking from birth to 6 years with deep clinical depth in speech-language subsystems, auditory milestones, and Indian multilingual contexts.
+          <p className="mx-auto mt-5 max-w-[70ch] text-sm leading-[1.65] text-ink-soft lg:text-[15px]">
+            {t.app.tagline}. Evidence-based developmental tracking from birth to 6 years with deep
+            clinical depth in speech-language subsystems, auditory milestones, and Indian
+            multilingual contexts.
           </p>
 
-          {/* Dual Role Choice Cards */}
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto text-left">
-            
-            {/* Professional Portal Card */}
-            <div 
+          {/* Two pathway cards — teal is clinician, terracotta is parent, everywhere.
+              4px top rule on tablet and up, 4px left rule when stacked on a phone. */}
+          <div className="mx-auto mt-9 grid max-w-[940px] gap-4 text-left sm:gap-6 md:grid-cols-2 lg:mt-11">
+            <PathwayCard
+              pathway="clinician"
+              icon={<Stethoscope className="h-6 w-6" strokeWidth={1.8} />}
+              tag="Clinical Grade"
+              title={t.roles.professional}
+              subtitle={t.roles.professional_desc}
+              body="Structured clinical documentation, chronological & gestational corrected age calculations, estimated receptive/expressive age calculators, and printable PDF surveillance reports."
+              cta={t.nav.professional_portal}
               onClick={() => handleRoleSelect('professional')}
-              className="group cursor-pointer rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-card hover:border-brand-500 hover:shadow-elevated dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-500 transition-all"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300 group-hover:scale-110 transition-transform">
-                  <Stethoscope className="h-6 w-6" />
-                </div>
-                <Badge variant="info">Clinical Grade</Badge>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex items-center justify-between">
-                <span>{t.roles.professional}</span>
-                <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform text-slate-400 group-hover:text-brand-600" />
-              </h3>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Structured clinical documentation, chronological & gestational corrected age calculations, estimated receptive/expressive age calculators, and printable PDF surveillance reports.
-              </p>
-            </div>
-
-            {/* Parent Tracker Card */}
-            <div 
+            />
+            <PathwayCard
+              pathway="parent"
+              icon={<Heart className="h-6 w-6" strokeWidth={1.8} />}
+              tag="Gentle & Non-Alarmist"
+              title={t.roles.parent}
+              subtitle={t.roles.parent_desc}
+              body='Simple age-guided checklists, "Why it matters" explanations, fun home play activities from CDC & ASHA, receptive vs expressive progress gauges, and bilingual reassurance.'
+              cta={t.nav.parent_tracker}
               onClick={() => handleRoleSelect('parent')}
-              className="group cursor-pointer rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-card hover:border-rose-400 hover:shadow-elevated dark:border-slate-800 dark:bg-slate-900 dark:hover:border-rose-400 transition-all"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 group-hover:scale-110 transition-transform">
-                  <Heart className="h-6 w-6" />
-                </div>
-                <Badge variant="success">Gentle & Non-Alarmist</Badge>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors flex items-center justify-between">
-                <span>{t.roles.parent}</span>
-                <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform text-slate-400 group-hover:text-rose-600" />
-              </h3>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Simple age-guided checklists, "Why it matters" explanations, fun home play activities from CDC & ASHA, receptive vs expressive progress gauges, and bilingual reassurance.
-              </p>
-            </div>
-
+            />
           </div>
-
         </div>
       </section>
 
-      {/* Core Features Grid */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            Authoritative Clinical & Educational Modules
+      {/* ================= Modules ================= */}
+      <section className="mx-auto max-w-[1240px] px-[18px] py-12 sm:px-6 lg:px-8 lg:py-14">
+        <div className="mx-auto max-w-[940px]">
+          <h2 className="font-display text-[26px] font-extrabold leading-[1.12] text-ink lg:text-[28px]">
+            Authoritative Clinical &amp; Educational Modules
           </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            Engineered with strict adherence to evidence-based norms and multilingual Indian healthcare needs.
+          <p className="mt-2 max-w-[60ch] text-sm leading-[1.6] text-ink-muted">
+            Engineered with strict adherence to evidence-based norms and multilingual Indian
+            healthcare needs.
+          </p>
+
+          {/* One accent for all three module icons — the copy differentiates them. */}
+          <div className="mt-7 grid gap-px overflow-hidden rounded-card border border-line-warm bg-line-warm sm:grid-cols-2 lg:grid-cols-3">
+            <ModuleTile
+              href="/auditory-development"
+              icon={<Ear className="h-[22px] w-[22px]" strokeWidth={1.8} />}
+              title="Auditory & Hearing Milestones"
+              body="Northern & Downs (2002/2014) 7-stage sound localization maturation, AIISH Mysuru infant screening guidelines, Erber's 4 auditory levels, and High-Risk Registry indicators."
+            />
+            <ModuleTile
+              href="/speech-sound-matrix"
+              icon={<Activity className="h-[22px] w-[22px]" strokeWidth={1.8} />}
+              title="Crowe & McLeod (2020) Sound Matrix"
+              body="Early-8, Middle-8, and Late-8 consonant acquisition windows with word examples in English, Hindi, and Kannada, plus speech intelligibility norms by age."
+            />
+            <ModuleTile
+              href="/clinical-reference"
+              icon={<Brain className="h-[22px] w-[22px]" strokeWidth={1.8} />}
+              title="Subsystems & Indian Context"
+              body="Deep clinical reference on phonology, articulation, resonance, voice, semantics, syntax, pragmatics, LEST Trivandrum, and bilingual code-switching."
+            />
+          </div>
+
+          {/* Trilingual banner */}
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-7 rounded-panel bg-ink px-7 py-8 sm:px-9">
+            <div className="flex max-w-[56ch] flex-col gap-2.5">
+              <span className="eyebrow tracking-[0.1em] text-brand-300">
+                Full Trilingual Internationalization
+              </span>
+              <h2 className="font-display text-[24px] font-extrabold leading-[1.15] text-white sm:text-[28px]">
+                English • हिन्दी (Hindi) • ಕನ್ನಡ (Kannada)
+              </h2>
+              <p className="text-[13px] leading-[1.6] text-brand-200">
+                All UI labels, milestone descriptions, clinical why-it-matters rationales, and parent
+                tips are fully localized using culturally and linguistically verified terminology.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/parent/tracker"
+                className="focus-ring inline-flex min-h-[48px] items-center rounded-xl bg-white px-5 text-sm font-semibold text-brand-900"
+              >
+                Start Tracking Free
+              </Link>
+              <Link
+                href="/sources"
+                className="focus-ring inline-flex min-h-[48px] items-center rounded-xl border border-white/45 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                View Scientific Sources
+              </Link>
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-[80ch] text-xs leading-[1.6] text-ink-warm">
+            {t.app.disclaimer_short}
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Feature 1: Auditory & Hearing */}
-          <Link href="/auditory-development" className="block group">
-            <Card className="h-full hover:border-brand-500 hover:shadow-elevated transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 mb-4 group-hover:scale-105 transition-transform">
-                <Ear className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">
-                Auditory & Hearing Milestones
-              </h3>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Northern & Downs (2002/2014) 7-stage sound localization maturation, AIISH Mysuru infant screening guidelines, Erber's 4 auditory levels, and High-Risk Registry indicators.
-              </p>
-            </Card>
-          </Link>
-
-          {/* Feature 2: Speech Sound Acquisition */}
-          <Link href="/speech-sound-matrix" className="block group">
-            <Card className="h-full hover:border-brand-500 hover:shadow-elevated transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300 mb-4 group-hover:scale-105 transition-transform">
-                <Activity className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">
-                Crowe & McLeod (2020) Sound Matrix
-              </h3>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Early-8, Middle-8, and Late-8 consonant acquisition windows with word examples in English, Hindi, and Kannada, plus speech intelligibility norms by age.
-              </p>
-            </Card>
-          </Link>
-
-          {/* Feature 3: Speech & Language Subsystems */}
-          <Link href="/clinical-reference" className="block group">
-            <Card className="h-full hover:border-brand-500 hover:shadow-elevated transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 mb-4 group-hover:scale-105 transition-transform">
-                <Brain className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">
-                Subsystems & Indian Context
-              </h3>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Deep clinical reference on phonology, articulation, resonance, voice, semantics, syntax, pragmatics, LEST Trivandrum, and bilingual code-switching.
-              </p>
-            </Card>
-          </Link>
-
-        </div>
       </section>
-
-      {/* Trilingual Support Banner */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-brand-200 bg-gradient-to-r from-brand-500 via-teal-600 to-brand-700 p-8 sm:p-10 text-white shadow-elevated flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-              <Globe2 className="h-3.5 w-3.5" />
-              <span>Full Trilingual Internationalization</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black">
-              English • हिन्दी (Hindi) • ಕನ್ನಡ (Kannada)
-            </h2>
-            <p className="text-xs sm:text-sm text-brand-100 max-w-xl">
-              All UI labels, milestone descriptions, clinical why-it-matters rationales, and parent tips are fully localized using culturally and linguistically verified terminology.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/parent/tracker">
-              <Button variant="secondary" size="md" className="font-bold">
-                Start Tracking Free
-              </Button>
-            </Link>
-            <Link href="/sources">
-              <Button variant="outline" size="md" className="bg-transparent border-white/60 text-white hover:bg-white/10 font-semibold">
-                View Scientific Sources
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+function PathwayCard({
+  pathway,
+  icon,
+  tag,
+  title,
+  subtitle,
+  body,
+  cta,
+  onClick,
+}: {
+  pathway: 'clinician' | 'parent';
+  icon: React.ReactNode;
+  tag: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  cta: string;
+  onClick: () => void;
+}) {
+  const clinician = pathway === 'clinician';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`focus-ring group flex flex-col rounded-panel border border-line-warm bg-surface-raised p-6 text-left shadow-elevated transition-colors sm:p-[30px] ${
+        clinician
+          ? 'border-l-4 border-l-brand-600 md:border-l md:border-l-line-warm md:border-t-4 md:border-t-brand-600'
+          : 'border-l-4 border-l-parent-600 md:border-l md:border-l-line-warm md:border-t-4 md:border-t-parent-600'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={`flex h-[50px] w-[50px] items-center justify-center rounded-[14px] ${
+            clinician
+              ? 'bg-brand-tint text-brand-600 dark:text-brand-400'
+              : 'bg-parent-tint text-parent-600'
+          }`}
+        >
+          {icon}
+        </span>
+        <span
+          className={`eyebrow rounded-full px-3 py-1.5 ${
+            clinician
+              ? 'bg-brand-tint text-brand-600 dark:text-brand-400'
+              : 'bg-parent-tint text-parent-700'
+          }`}
+        >
+          {tag}
+        </span>
+      </div>
+
+      <h3 className="mt-5 font-display text-[22px] font-extrabold leading-[1.15] text-ink sm:text-[26px]">
+        {title}
+      </h3>
+      <p className="mt-2 text-[13px] leading-[1.5] text-ink-muted">{subtitle}</p>
+      <p className="mt-4 text-sm leading-[1.6] text-ink-body">{body}</p>
+
+      <span
+        className={`mt-6 inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full text-[15px] font-semibold text-white transition-colors ${
+          clinician
+            ? 'bg-brand-600 group-hover:bg-brand-700 dark:text-ink-invert'
+            : 'bg-parent-600 group-hover:bg-parent-700 dark:text-ink-invert'
+        }`}
+      >
+        {cta}
+        <ArrowRight className="h-[17px] w-[17px]" strokeWidth={2.2} />
+      </span>
+    </button>
+  );
+}
+
+function ModuleTile({
+  href,
+  icon,
+  title,
+  body,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="focus-ring flex flex-col gap-3 bg-surface-raised p-6 transition-colors hover:bg-surface-tint"
+    >
+      <span className="text-brand-600 dark:text-brand-400">{icon}</span>
+      <h3 className="font-sans text-base font-semibold leading-[1.3] text-ink">{title}</h3>
+      <p className="text-[13px] leading-[1.6] text-ink-muted">{body}</p>
+    </Link>
   );
 }

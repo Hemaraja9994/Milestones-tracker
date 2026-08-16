@@ -1,20 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import confetti from 'canvas-confetti';
-import { 
-  Check, 
-  Sparkles, 
-  HelpCircle, 
-  Circle, 
-  Lightbulb, 
-  HeartHandshake, 
-  ChevronDown, 
-  ChevronUp,
-  Award
-} from 'lucide-react';
+import { Check, Ear, Brain, MessageSquare, Users, AudioLines, LucideIcon } from 'lucide-react';
 import { Milestone, MilestoneStatus } from '@/types';
-import { Card, Badge } from '@/components/ui/Primitives';
+import { Badge, Citation } from '@/components/ui/Primitives';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface ParentMilestoneCardProps {
@@ -23,136 +13,182 @@ interface ParentMilestoneCardProps {
   onStatusChange: (status: MilestoneStatus) => void;
 }
 
+const DOMAIN_ICONS: Record<string, LucideIcon> = {
+  auditory_hearing: Ear,
+  language_receptive: Brain,
+  language_expressive: MessageSquare,
+  speech_articulation: AudioLines,
+  social_pragmatic: Users,
+};
+
 export default function ParentMilestoneCard({
   milestone,
   status,
   onStatusChange,
 }: ParentMilestoneCardProps) {
   const { language, t } = useLanguage();
-  const [showTips, setShowTips] = useState(true);
+
+  const isCompleted = status === 'observed' || status === 'reported';
+  const isEmerging = status === 'emerging';
+  const isNotYet = status === 'not_observed';
 
   const handleSelect = (newStatus: MilestoneStatus) => {
     onStatusChange(newStatus);
-    if (newStatus === 'observed' && status !== 'observed') {
-      // Trigger joyful celebratory confetti
+    if (newStatus === 'observed' && !isCompleted) {
       try {
         confetti({
           particleCount: 40,
           spread: 60,
           origin: { y: 0.8 },
-          colors: ['#14b8a6', '#f43f5e', '#f59e0b', '#6366f1']
+          colors: ['#2F7D5A', '#4F7A5B', '#B9762A', '#D9832A'],
         });
-      } catch (e) {
-        // Safe fallback if confetti fails
+      } catch {
+        /* confetti is decorative only */
       }
     }
   };
 
-  const isCompleted = status === 'observed' || status === 'reported';
-  const isEmerging = status === 'emerging';
+  const Icon = DOMAIN_ICONS[milestone.domain] || Brain;
 
   return (
-    <Card className={`overflow-hidden transition-all border-2 ${
-      isCompleted
-        ? 'border-emerald-300 bg-emerald-50/20 dark:border-emerald-800 dark:bg-emerald-950/15 shadow-sm'
-        : isEmerging
-        ? 'border-amber-300 bg-amber-50/20 dark:border-amber-800 dark:bg-amber-950/15'
-        : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'
-    }`}>
-      
-      {/* Top Title & Domain */}
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div>
-          <div className="flex items-center gap-2">
-            {isCompleted && (
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white animate-bounce">
-                <Check className="h-3.5 w-3.5 stroke-[3]" />
-              </div>
-            )}
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+    <article className="overflow-hidden rounded-panel border border-line-warm bg-surface-raised">
+      {/* -------- Head -------- */}
+      <div className="flex flex-wrap items-start justify-between gap-5 px-5 pb-5 pt-6 sm:px-7">
+        <div className="flex flex-1 gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-brand-tint text-brand-600 dark:text-brand-400">
+            <Icon className="h-6 w-6" strokeWidth={1.8} />
+          </span>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="eyebrow text-brand-600 dark:text-brand-400">
+                {t.domains[milestone.domain] || milestone.domain}
+              </span>
+              {milestone.isRedFlag && <Badge variant="danger">{t.common.red_flag}</Badge>}
+              {isCompleted && (
+                <Badge variant="success">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                  Ticked
+                </Badge>
+              )}
+            </div>
+
+            <h3 className="mt-2.5 max-w-[34ch] font-display text-[22px] font-extrabold leading-[1.15] text-ink sm:text-[27px]">
               {milestone.title[language] || milestone.title.en}
             </h3>
-          </div>
-          <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 mt-0.5 inline-block">
-            {t.domains[milestone.domain] || milestone.domain}
-          </span>
-        </div>
-
-        <Badge variant={isCompleted ? 'success' : isEmerging ? 'warning' : 'outline'}>
-          {isCompleted ? 'Mastered!' : isEmerging ? 'Practicing' : 'Upcoming'}
-        </Badge>
-      </div>
-
-      {/* Description */}
-      <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed mb-4">
-        {milestone.description[language] || milestone.description.en}
-      </p>
-
-      {/* 3 Simple Parent Status Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-        <button
-          type="button"
-          onClick={() => handleSelect('observed')}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-bold transition-all ${
-            isCompleted
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 scale-[1.02]'
-              : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800 dark:bg-slate-800 dark:text-slate-300'
-          }`}
-        >
-          <Award className="h-4 w-4" />
-          <span>{t.status_labels.parent_yes}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelect('emerging')}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-bold transition-all ${
-            isEmerging
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
-              : 'bg-slate-100 text-slate-700 hover:bg-amber-100 hover:text-amber-800 dark:bg-slate-800 dark:text-slate-300'
-          }`}
-        >
-          <HelpCircle className="h-4 w-4" />
-          <span>{t.status_labels.parent_sometimes}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelect('not_observed')}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-bold transition-all ${
-            status === 'not_observed'
-              ? 'bg-slate-700 text-white dark:bg-slate-700'
-              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-          }`}
-        >
-          <Circle className="h-4 w-4" />
-          <span>{t.status_labels.parent_not_yet}</span>
-        </button>
-      </div>
-
-      {/* Parent Tips & Activities Card */}
-      <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-4 border border-amber-200/70 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50">
-        <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowTips(!showTips)}>
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-300">
-            <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <span>{t.parent.try_at_home}</span>
-          </div>
-          {showTips ? <ChevronUp className="h-4 w-4 text-amber-700" /> : <ChevronDown className="h-4 w-4 text-amber-700" />}
-        </div>
-
-        {showTips && (
-          <div className="mt-2.5 space-y-2 text-xs text-amber-950 dark:text-amber-200 leading-relaxed border-t border-amber-200/60 dark:border-amber-900/50 pt-2">
-            <p className="font-medium">
-              {milestone.parentTips[language] || milestone.parentTips.en}
+            <p className="mt-2.5 max-w-[72ch] text-[15px] leading-[1.6] text-ink-body">
+              {milestone.description[language] || milestone.description.en}
             </p>
-            <div className="text-[11px] text-amber-800/80 dark:text-amber-400 italic">
-              <span className="font-semibold">{t.parent.why_matters}: </span>
-              {milestone.whyItMatters[language] || milestone.whyItMatters.en}
-            </div>
           </div>
-        )}
+        </div>
+
+        {milestone.citation && <Citation className="shrink-0">{milestone.citation}</Citation>}
       </div>
 
-    </Card>
+      {/* -------- Panels: why, what to look for, play tip -------- */}
+      <div className="grid gap-px border-t border-line-rule bg-line-rule md:grid-cols-3">
+        <Panel title={t.parent.why_matters}>
+          {milestone.whyItMatters[language] || milestone.whyItMatters.en}
+        </Panel>
+        <Panel title={t.parent.what_to_look}>
+          {milestone.whatToLookFor[language] || milestone.whatToLookFor.en}
+        </Panel>
+        <Panel title={t.parent.try_at_home} tone="parent">
+          {milestone.parentTips[language] || milestone.parentTips.en}
+        </Panel>
+      </div>
+
+      {/* -------- Actions: all ≥52px on parent screens -------- */}
+      <div
+        className="flex flex-wrap items-center gap-3 border-t border-line-rule px-5 py-5 sm:px-7"
+        role="radiogroup"
+        aria-label={milestone.title[language] || milestone.title.en}
+      >
+        <StatusButton
+          selected={isCompleted}
+          onClick={() => handleSelect('observed')}
+          selectedClass="bg-achieved text-white dark:text-ink-invert"
+          idleClass="border-[1.5px] border-line-warm bg-surface-raised text-ink-body hover:border-achieved hover:text-achieved"
+        >
+          <Check className="h-[18px] w-[18px]" strokeWidth={2.4} />
+          {t.status_labels.parent_yes}
+        </StatusButton>
+
+        <StatusButton
+          selected={isEmerging}
+          onClick={() => handleSelect('emerging')}
+          selectedClass="bg-emerging text-white dark:text-ink-invert"
+          idleClass="border-[1.5px] border-emerging/40 bg-surface-raised text-emerging-ink"
+        >
+          {t.status_labels.parent_sometimes}
+        </StatusButton>
+
+        <StatusButton
+          selected={isNotYet}
+          onClick={() => handleSelect('not_observed')}
+          selectedClass="bg-ink text-surface-raised"
+          idleClass="border-[1.5px] border-line-warm bg-surface-raised text-ink-soft"
+        >
+          {t.status_labels.parent_not_yet}
+        </StatusButton>
+      </div>
+    </article>
+  );
+}
+
+function Panel({
+  title,
+  tone = 'neutral',
+  children,
+}: {
+  title: string;
+  tone?: 'neutral' | 'parent';
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`px-5 py-5 sm:px-6 ${tone === 'parent' ? 'bg-parent-tint' : 'bg-surface-canvas'}`}>
+      <h4
+        className={`eyebrow font-sans tracking-[0.05em] ${
+          tone === 'parent' ? 'text-parent-700' : 'text-brand-600 dark:text-brand-400'
+        }`}
+      >
+        {title}
+      </h4>
+      <p
+        className={`mt-2.5 text-[13px] leading-[1.6] ${
+          tone === 'parent' ? 'text-parent-700' : 'text-ink-body'
+        }`}
+      >
+        {children}
+      </p>
+    </div>
+  );
+}
+
+function StatusButton({
+  selected,
+  onClick,
+  selectedClass,
+  idleClass,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  selectedClass: string;
+  idleClass: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onClick}
+      className={`focus-ring inline-flex min-h-[52px] items-center gap-2.5 rounded-xl px-5 text-[15px] font-semibold transition-colors ${
+        selected ? selectedClass : idleClass
+      }`}
+    >
+      {children}
+    </button>
   );
 }
