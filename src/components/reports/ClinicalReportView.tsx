@@ -17,9 +17,10 @@ import {
 import { ChildProfile, AssessmentRecord } from '@/types';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { computeClinicalSnapshot } from '@/lib/calculationEngine';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { Button, Badge } from '@/components/ui/Primitives';
 import { useLanguage } from '@/context/LanguageContext';
+import BrandMark from '@/components/ui/BrandMark';
 
 interface ClinicalReportViewProps {
   child: ChildProfile;
@@ -51,9 +52,7 @@ export default function ClinicalReportView({ child, assessment }: ClinicalReport
       {/* Action Bar (Hidden in Print) */}
       <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-            <FileCheck2 className="h-5 w-5" />
-          </div>
+          <BrandMark size={28} />
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">
               Clinical Developmental Surveillance Report
@@ -84,7 +83,7 @@ export default function ClinicalReportView({ child, assessment }: ClinicalReport
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-5 w-5 text-brand-600" />
-              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 MILESTONEPATH CLINICAL SUMMARY
               </h1>
             </div>
@@ -156,40 +155,40 @@ export default function ClinicalReportView({ child, assessment }: ClinicalReport
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="rounded-xl border border-sky-200 bg-sky-50/40 p-3.5 dark:border-sky-900/60 dark:bg-sky-950/20">
-              <span className="text-xs font-semibold text-sky-800 dark:text-sky-300">Receptive Language Age</span>
+              <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">Receptive Language Age</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-black text-sky-950 dark:text-white">
+                <span className="text-2xl font-extrabold text-ink">
                   {snapshot.estimatedReceptiveAgeMonths}
                 </span>
-                <span className="text-xs font-medium text-sky-700">months</span>
+                <span className="text-xs font-medium text-ink-muted">months</span>
               </div>
-              <p className="text-[11px] text-sky-700/80 mt-1">
+              <p className="text-[11px] text-ink-muted mt-1">
                 {snapshot.receptiveDelayFlag ? '⚠️ Mild Receptive Lag' : '✓ Age-Appropriate Understanding'}
               </p>
             </div>
 
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3.5 dark:border-emerald-900/60 dark:bg-emerald-950/20">
-              <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Expressive Language Age</span>
+              <span className="text-xs font-semibold text-emerging-ink">Expressive Language Age</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-black text-emerald-950 dark:text-white">
+                <span className="text-2xl font-extrabold text-ink">
                   {snapshot.estimatedExpressiveAgeMonths}
                 </span>
-                <span className="text-xs font-medium text-emerald-700">months</span>
+                <span className="text-xs font-medium text-emerging-ink">months</span>
               </div>
-              <p className="text-[11px] text-emerald-700/80 mt-1">
+              <p className="text-[11px] text-emerging-ink mt-1">
                 {snapshot.expressiveDelayFlag ? '⚠️ Expressive Delay Flagged' : '✓ Age-Appropriate Speaking'}
               </p>
             </div>
 
             <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-3.5 dark:border-indigo-900/60 dark:bg-indigo-950/20">
-              <span className="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Auditory Behavioral Age</span>
+              <span className="text-xs font-semibold text-achieved-ink">Auditory Behavioral Age</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-black text-indigo-950 dark:text-white">
+                <span className="text-2xl font-extrabold text-ink">
                   {snapshot.estimatedAuditoryAgeMonths}
                 </span>
-                <span className="text-xs font-medium text-indigo-700">months</span>
+                <span className="text-xs font-medium text-achieved-ink">months</span>
               </div>
-              <p className="text-[11px] text-indigo-700/80 mt-1">
+              <p className="text-[11px] text-achieved-ink mt-1">
                 {snapshot.auditoryDelayFlag ? '⚠️ Auditory Follow-up Advised' : '✓ Mature Sound Localization'}
               </p>
             </div>
@@ -215,7 +214,7 @@ export default function ClinicalReportView({ child, assessment }: ClinicalReport
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {COMPREHENSIVE_MILESTONES.slice(0, 15).map((m) => {
+                {ALL_MILESTONES.slice(0, 15).map((m) => {
                   const st = assessment.milestoneStatuses[m.id] || 'not_observed';
                   const note = assessment.milestoneNotes[m.id];
                   return (

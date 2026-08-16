@@ -2,24 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  Heart, 
-  Sparkles, 
-  Brain, 
-  Ear, 
-  MessageSquare, 
-  CheckCircle2, 
-  ArrowRight, 
-  Award,
-  Users,
-  Lightbulb,
-  ShieldCheck
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { computeClinicalSnapshot } from '@/lib/calculationEngine';
-import { Card, Badge, Button, ProgressBar } from '@/components/ui/Primitives';
+import { GaugeRow, NotePanel } from '@/components/ui/Primitives';
+import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
 
 export default function ParentPortalHome() {
   const { childrenList, activeChild, setActiveChild, assessments } = useChild();
@@ -38,163 +27,124 @@ export default function ParentPortalHome() {
         correctedText: { en: '24 months', hi: '24 महीने', kn: '24 ತಿಂಗಳು' },
       };
 
-  const assessment = child ? assessments.find(a => a.childId === child.id) : null;
-  const snapshot = computeClinicalSnapshot(
+  const assessment = child ? assessments.find((a) => a.childId === child.id) : null;
+  const statuses = assessment?.milestoneStatuses || {};
+  const snapshot = computeClinicalSnapshot(ageResult.effectiveAgeMonths, statuses, child);
+
+  const gaugeCeiling = Math.max(
     ageResult.effectiveAgeMonths,
-    assessment?.milestoneStatuses || {},
-    child
+    snapshot.estimatedReceptiveAgeMonths,
+    snapshot.estimatedExpressiveAgeMonths,
+    snapshot.estimatedAuditoryAgeMonths,
+    12
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      
-      {/* Welcome Banner */}
-      <div className="rounded-3xl border border-rose-200/70 bg-gradient-to-r from-rose-50 via-pink-50/50 to-amber-50 p-6 sm:p-8 dark:border-rose-900/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-              <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
-              <span>{t.parent.welcome}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {child ? `Tracking ${child.nameOrInitials}` : 'Track Your Child\'s Milestones'}
+    <div className="bg-surface-canvas">
+      {/* ================= Welcome ================= */}
+      <div className="border-b border-line-rule bg-surface-raised">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-end justify-between gap-6 px-[18px] pb-7 pt-8 sm:px-6 lg:px-9">
+          <div>
+            <div className="eyebrow tracking-[0.1em] text-parent-600">{t.parent.welcome}</div>
+            <h1 className="mt-2.5 font-display text-[30px] font-extrabold leading-[1.1] text-ink sm:text-[38px]">
+              {t.parent.tracker_title}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-              Celebrate every smile, babble, word, and listening moment. Track developmental progress with gentle guidance backed by CDC, ASHA, and Pathways.org.
+            <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-ink-soft">
+              {child
+                ? `Tracking ${child.nameOrInitials} · ${
+                    ageResult.chronologicalText[language] || ageResult.chronologicalText.en
+                  }`
+                : 'Celebrate every smile, babble, word, and listening moment.'}{' '}
+              Track developmental progress with gentle guidance backed by CDC, ASHA, and
+              Pathways.org.
             </p>
           </div>
 
-          <Link href="/parent/tracker">
-            <Button variant="primary" size="lg" className="bg-rose-600 hover:bg-rose-700 shadow-rose-500/20 font-bold whitespace-nowrap">
-              <Sparkles className="h-4 w-4" />
-              <span>Open Milestone Tracker</span>
-            </Button>
+          <Link
+            href="/parent/tracker"
+            className="focus-ring inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-parent-600 px-6 text-[15px] font-semibold text-white transition-colors hover:bg-parent-700 dark:text-ink-invert"
+          >
+            Open Milestone Tracker
+            <ArrowRight className="h-[17px] w-[17px]" strokeWidth={2.2} />
           </Link>
         </div>
+
+        {childrenList.length > 1 && (
+          <div className="mx-auto max-w-[1240px] px-[18px] pb-5 sm:px-6 lg:px-9">
+            <div className="text-xs font-semibold text-ink-soft">Select Child</div>
+            <div className="scroll-rail mt-2.5">
+              {childrenList.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setActiveChild(c)}
+                  aria-pressed={child?.id === c.id}
+                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm font-semibold transition-colors ${
+                    child?.id === c.id
+                      ? 'bg-parent-600 text-white dark:text-ink-invert'
+                      : 'border border-line-warm bg-surface-raised font-medium text-ink-body'
+                  }`}
+                >
+                  {c.nameOrInitials}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Child Switcher Pill (Multi-Child Support) */}
-      {childrenList.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          <span className="text-xs font-bold text-slate-500 shrink-0">Select Child:</span>
-          {childrenList.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveChild(c)}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shrink-0 ${
-                child?.id === c.id
-                  ? 'bg-rose-600 text-white shadow-sm'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300'
-              }`}
-            >
-              {c.nameOrInitials}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
+        <MilestoneTickTracker statuses={statuses} />
 
-      {/* 3 Visual Progress Gauges for Parents */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Gauge 1: Understanding (Receptive Language) */}
-        <Card className="flex flex-col justify-between border-sky-200/80 bg-gradient-to-b from-sky-50/30 to-white dark:border-sky-900/60 dark:from-sky-950/20 dark:to-slate-900">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-2 text-xs font-bold text-sky-800 dark:text-sky-300">
-                <Brain className="h-4 w-4" />
-                {t.parent.receptive_gauge}
-              </span>
-              <Badge variant="info">Understanding</Badge>
-            </div>
-            <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {snapshot.estimatedReceptiveAgeMonths}
-              </span>
-              <span className="text-xs text-slate-500 font-medium">months level</span>
-            </div>
-            <ProgressBar value={snapshot.estimatedReceptiveAgeMonths} max={36} colorClass="bg-sky-500" />
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
-              How well your child understands words, gestures, points, and family requests.
-            </p>
-          </div>
-        </Card>
-
-        {/* Gauge 2: Talking & Gesturing (Expressive Language) */}
-        <Card className="flex flex-col justify-between border-emerald-200/80 bg-gradient-to-b from-emerald-50/30 to-white dark:border-emerald-900/60 dark:from-emerald-950/20 dark:to-slate-900">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                <MessageSquare className="h-4 w-4" />
-                {t.parent.expressive_gauge}
-              </span>
-              <Badge variant="success">Talking & Words</Badge>
-            </div>
-            <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {snapshot.estimatedExpressiveAgeMonths}
-              </span>
-              <span className="text-xs text-slate-500 font-medium">months level</span>
-            </div>
-            <ProgressBar value={snapshot.estimatedExpressiveAgeMonths} max={36} colorClass="bg-emerald-500" />
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
-              The words, sentences, gestures, and sounds your child uses to share thoughts.
-            </p>
-          </div>
-        </Card>
-
-        {/* Gauge 3: Hearing & Listening */}
-        <Card className="flex flex-col justify-between border-indigo-200/80 bg-gradient-to-b from-indigo-50/30 to-white dark:border-indigo-900/60 dark:from-indigo-950/20 dark:to-slate-900">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-2 text-xs font-bold text-indigo-800 dark:text-indigo-300">
-                <Ear className="h-4 w-4" />
-                {t.parent.auditory_gauge}
-              </span>
-              <Badge variant="purple">Listening</Badge>
-            </div>
-            <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {snapshot.estimatedAuditoryAgeMonths}
-              </span>
-              <span className="text-xs text-slate-500 font-medium">months level</span>
-            </div>
-            <ProgressBar value={snapshot.estimatedAuditoryAgeMonths} max={36} colorClass="bg-indigo-500" />
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
-              Turning to soft sounds, recognizing family voices, and listening to stories.
-            </p>
-          </div>
-        </Card>
-
-      </div>
-
-      {/* Gentle Indian Multilingual Reassurance Card */}
-      <div className="rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 p-6 dark:border-teal-900/60 dark:from-teal-950/30 dark:to-emerald-950/20 flex items-start gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shrink-0">
-          <Lightbulb className="h-5 w-5" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="text-sm font-bold text-teal-950 dark:text-teal-200">
-            Multilingual Growth in Indian Homes (Hindi, Kannada & English)
-          </h3>
-          <p className="text-xs text-teal-900 dark:text-teal-300 leading-relaxed">
-            {t.parent.bilingual_reassurance} Children naturally code-switch (mix words like "Amma milk ಬೇಕು" or "Gadi stop karo"). Count words learned in <em>all</em> your home languages together!
+        {/* Three developmental gauges — 10px bars on parent screens */}
+        <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
+          <h2 className="font-sans text-sm font-semibold text-ink">
+            Where {child ? child.nameOrInitials : 'your child'} is right now
+          </h2>
+          <p className="mt-1.5 text-xs leading-[1.6] text-ink-muted">
+            A gentle estimate from the milestones you have ticked — not a test score.
           </p>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            <GaugeRow
+              size="parent"
+              label={t.parent.receptive_gauge}
+              valueLabel={`${snapshot.estimatedReceptiveAgeMonths} mo`}
+              value={snapshot.estimatedReceptiveAgeMonths}
+              max={gaugeCeiling}
+              colorClass="bg-brand-600 dark:bg-brand-400"
+              footnote="How well your child understands words, gestures, points, and family requests."
+            />
+            <GaugeRow
+              size="parent"
+              label={t.parent.expressive_gauge}
+              valueLabel={`${snapshot.estimatedExpressiveAgeMonths} mo`}
+              value={snapshot.estimatedExpressiveAgeMonths}
+              max={gaugeCeiling}
+              colorClass="bg-emerging"
+              footnote="The words, sentences, gestures, and sounds your child uses to share thoughts."
+            />
+            <GaugeRow
+              size="parent"
+              label={t.parent.auditory_gauge}
+              valueLabel={`${snapshot.estimatedAuditoryAgeMonths} mo`}
+              value={snapshot.estimatedAuditoryAgeMonths}
+              max={gaugeCeiling}
+              colorClass="bg-achieved"
+              footnote="Turning to soft sounds, recognizing family voices, and listening to stories."
+            />
+          </div>
+        </section>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <NotePanel tone="achieved">{t.parent.gentle_note}</NotePanel>
+          <NotePanel tone="parent">
+            {t.parent.bilingual_reassurance} Children naturally code-switch (mix words like &ldquo;Amma
+            milk ಬೇಕು&rdquo; or &ldquo;Gadi stop karo&rdquo;). Count words learned in <em>all</em> your
+            home languages together!
+          </NotePanel>
         </div>
       </div>
-
-      {/* Gentle Developmental Pace Reminder */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 flex items-start gap-4">
-        <ShieldCheck className="h-5 w-5 text-brand-600 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-            A Gentle Note on Milestones
-          </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            {t.parent.gentle_note}
-          </p>
-        </div>
-      </div>
-
     </div>
   );
 }

@@ -2,30 +2,185 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   MilestonePath design tokens — "Warm Playroom Clinic" (direction 2b)
+
+   Cream ground, sage for the clinician pathway, marigold for the parent
+   pathway. Token names are identical in light and dark; dark keeps the same
+   semantics and lightens/desaturates the hues so status colour never vibrates
+   against the dark surface. Brand sage moves up to #8FBF97 for 4.5:1 on
+   #191A14. Values are stored as space-separated RGB channels so Tailwind's
+   `rgb(var(--token) / <alpha-value>)` opacity modifiers keep working.
+   ========================================================================== */
+
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 241, 245, 249;
+  /* Surfaces */
+  --surface-canvas: 255 249 236;   /* #FFF9EC */
+  --surface-raised: 255 255 255;   /* #FFFFFF */
+  --surface-sunken: 243 237 228;   /* #F3EDE4 */
+  --surface-tint: 255 252 243;     /* #FFFCF3 */
+
+  /* Ink */
+  --ink: 47 74 56;                 /* #2F4A38 */
+  --ink-body: 79 90 72;            /* #4F5A48 */
+  --ink-muted: 110 122 102;        /* #6E7A66 */
+  --ink-soft: 94 107 88;           /* #5E6B58 */
+  --ink-warm: 125 112 83;          /* #7D7053 */
+  --ink-invert: 255 255 255;       /* #FFFFFF */
+
+  /* Lines */
+  --line-warm: 242 228 201;        /* #F2E4C9 */
+  --line-strong: 232 217 188;      /* #E8D9BC */
+  --line-hair: 245 235 216;        /* #F5EBD8 */
+  --line-rule: 245 233 210;        /* #F5E9D2 */
+
+  /* Pathways — sage means clinician, marigold means parent, everywhere */
+  --brand-600: 79 122 91;          /* #4F7A5B */
+  --brand-400: 127 169 138;        /* #7FA98A */
+  --brand-tint: 232 240 227;       /* #E8F0E3 */
+  --parent-600: 217 131 42;        /* #D9832A */
+  --parent-700: 150 96 27;         /* #96601B */
+  --parent-tint: 253 240 220;      /* #FDF0DC */
+
+  /* Status — reserved for achieved / emerging / risk only */
+  --achieved: 47 125 90;           /* #2F7D5A */
+  --achieved-tint: 241 245 233;    /* #F1F5E9 */
+  --achieved-ink: 67 83 58;        /* #43533A */
+  --emerging: 185 118 42;          /* #B9762A */
+  --emerging-tint: 251 241 221;    /* #FBF1DD */
+  --emerging-ink: 138 100 32;      /* #8A6420 */
+  --risk: 180 69 60;               /* #B4453C */
+  --risk-tint: 249 233 231;        /* #F9E9E7 */
+  --risk-ink: 150 56 48;           /* #963830 */
 }
 
 .dark {
-  --foreground-rgb: 248, 250, 252;
-  --background-start-rgb: 2, 6, 23;
-  --background-end-rgb: 15, 23, 42;
+  --surface-canvas: 25 26 20;      /* #191A14 */
+  --surface-raised: 34 35 26;      /* #22231A */
+  --surface-sunken: 44 45 35;      /* #2C2D23 */
+  --surface-tint: 31 32 24;        /* #1F2018 */
+
+  --ink: 247 247 236;              /* #F7F7EC */
+  --ink-body: 210 211 198;         /* #D2D3C6 */
+  --ink-muted: 168 172 154;        /* #A8AC9A */
+  --ink-soft: 168 172 154;         /* #A8AC9A */
+  --ink-warm: 156 161 146;         /* #9CA192 */
+  --ink-invert: 25 26 20;          /* #191A14 */
+
+  --line-warm: 51 52 42;           /* #33342A */
+  --line-strong: 51 52 42;         /* #33342A */
+  --line-hair: 44 45 35;           /* #2C2D23 */
+  --line-rule: 51 52 42;           /* #33342A */
+
+  --brand-600: 143 191 151;        /* #8FBF97 */
+  --brand-400: 110 154 118;        /* #6E9A76 */
+  --brand-tint: 42 51 36;          /* #2A3324 */
+  --parent-600: 217 138 99;        /* #D98A63 */
+  --parent-700: 226 165 133;       /* #E2A585 */
+  --parent-tint: 58 43 34;         /* #3A2B22 */
+
+  --achieved: 111 175 122;         /* #6FAF7A */
+  --achieved-tint: 34 48 31;       /* #22301F */
+  --achieved-ink: 183 205 168;     /* #B7CDA8 */
+  --emerging: 217 162 87;          /* #D9A257 */
+  --emerging-tint: 51 40 26;       /* #33281A */
+  --emerging-ink: 230 200 138;     /* #E6C88A */
+  --risk: 224 119 108;             /* #E0776C */
+  --risk-tint: 56 32 30;           /* #38201E */
+  --risk-ink: 235 167 158;         /* #EBA79E */
 }
 
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: rgb(var(--ink-body));
+  background: rgb(var(--surface-canvas));
   min-height: 100vh;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-sans), var(--font-devanagari), var(--font-kannada),
+    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-wrap: pretty;
+}
+
+/* Nunito at 800 carries page titles, card titles and large numerals — rounded
+   terminals give the warmth the parent side needs, and at 800 it still holds
+   authority in a clinical report. Instrument Sans carries all UI. Utilities
+   (font-sans) still win where a component opts a heading back into the UI face. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), var(--font-devanagari), var(--font-kannada),
+    system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  color: rgb(var(--ink));
+}
+
+/* The active language leads the stack, so Devanagari and Kannada glyphs are not
+   left to a fallback face. Devanagari and Kannada also have taller x-heights, so
+   Indic body copy takes 1.7 line-height instead of 1.6. */
+.lang-hi body,
+.lang-hi h1,
+.lang-hi h2,
+.lang-hi h3,
+.lang-hi h4 {
+  font-family: var(--font-devanagari), var(--font-display), var(--font-sans),
+    system-ui, sans-serif;
+}
+
+.lang-kn body,
+.lang-kn h1,
+.lang-kn h2,
+.lang-kn h3,
+.lang-kn h4 {
+  font-family: var(--font-kannada), var(--font-display), var(--font-sans),
+    system-ui, sans-serif;
+}
+
+.lang-hi body,
+.lang-kn body {
+  line-height: 1.7;
+}
+
+::selection {
+  background: rgb(var(--brand-600));
+  color: rgb(var(--ink-invert));
+}
+
+/* ==========================================================================
+   Component conveniences
+   ========================================================================== */
+
+@layer components {
+  /* 11px / 700 / 0.06em caps — tinted background only, never a status hue. */
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.06em];
+  }
+
+  /* Citations sit in an outlined pill, never tinted, so evidence never reads
+     as a status. */
+  .citation-pill {
+    @apply inline-flex items-center rounded-full border border-line-warm px-2.5 py-1.5
+           text-[11px] font-semibold text-ink-muted;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/45
+           focus-visible:ring-offset-2 focus-visible:ring-offset-surface-canvas;
+  }
+
+  /* Age-band chips scroll horizontally on phones without a visible scrollbar. */
+  .scroll-rail {
+    @apply flex gap-2 overflow-x-auto pb-2;
+    scrollbar-width: none;
+  }
+  .scroll-rail::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Custom Scrollbar */
@@ -34,17 +189,10 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-}
-.dark ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--surface-sunken));
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgb(var(--line-strong));
   border-radius: 4px;
 }
 
@@ -64,8 +212,8 @@ body {
   .print-page-break {
     page-break-before: always;
   }
-  .shadow-card, .shadow-elevated, .shadow-subtle {
+  .shadow-card, .shadow-elevated, .shadow-subtle, .shadow-frame {
     box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #F2E4C9 !important;
   }
 }

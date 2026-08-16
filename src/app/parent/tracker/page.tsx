@@ -2,26 +2,24 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Heart, 
-  Sparkles, 
-  ArrowLeft, 
-  Brain, 
-  MessageSquare, 
-  Ear, 
-  Layers, 
-  Printer, 
-  CheckCircle2,
-  Award
-} from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
 import { MilestoneStatus, AssessmentRecord } from '@/types';
 import ParentMilestoneCard from '@/components/parent/ParentMilestoneCard';
-import { Card, Badge, Button, ProgressBar } from '@/components/ui/Primitives';
+import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
+import { NotePanel } from '@/components/ui/Primitives';
+
+const DOMAIN_FILTERS: { value: string; label: string }[] = [
+  { value: 'all', label: 'All Skills' },
+  { value: 'language_receptive', label: 'Understanding Words (Receptive)' },
+  { value: 'language_expressive', label: 'Talking & Gestures (Expressive)' },
+  { value: 'auditory_hearing', label: 'Hearing & Listening (Auditory)' },
+  { value: 'social_pragmatic', label: 'Social & Play' },
+];
 
 export default function ParentMilestoneTracker() {
   const { childrenList, activeChild, assessments, saveCurrentAssessment } = useChild();
@@ -43,16 +41,13 @@ export default function ParentMilestoneTracker() {
   const [selectedAgeBand, setSelectedAgeBand] = useState<number>(ageResult.recommendedAgeBandMonths);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
 
-  const existingAssessment = assessments.find(a => a.childId === child?.id);
+  const existingAssessment = assessments.find((a) => a.childId === child?.id);
   const [statuses, setStatuses] = useState<Record<string, MilestoneStatus>>(
     existingAssessment?.milestoneStatuses || {}
   );
 
   const handleStatusChange = (milestoneId: string, newStatus: MilestoneStatus) => {
-    const updatedStatuses = {
-      ...statuses,
-      [milestoneId]: newStatus,
-    };
+    const updatedStatuses = { ...statuses, [milestoneId]: newStatus };
     setStatuses(updatedStatuses);
 
     if (child) {
@@ -70,156 +65,185 @@ export default function ParentMilestoneTracker() {
     }
   };
 
-  const milestonesInBand = COMPREHENSIVE_MILESTONES.filter(m => {
-    const matchAge = m.ageBandMonths === selectedAgeBand;
-    const matchDomain = selectedDomain === 'all' || m.domain === selectedDomain;
-    return matchAge && matchDomain;
-  });
+  const band = AGE_BANDS.find((b) => b.months === selectedAgeBand);
+  const milestonesInBand = ALL_MILESTONES.filter(
+    (m) =>
+      m.ageBandMonths === selectedAgeBand &&
+      (selectedDomain === 'all' || m.domain === selectedDomain)
+  );
 
-  const totalInBand = COMPREHENSIVE_MILESTONES.filter(m => m.ageBandMonths === selectedAgeBand).length;
-  const completedInBand = COMPREHENSIVE_MILESTONES.filter(
-    m => m.ageBandMonths === selectedAgeBand && (statuses[m.id] === 'observed' || statuses[m.id] === 'reported')
-  ).length;
+  const bandDomainTally = (domain: string) => {
+    const items = ALL_MILESTONES.filter(
+      (m) => m.ageBandMonths === selectedAgeBand && m.domain === domain
+    );
+    const seen = items.filter(
+      (m) => statuses[m.id] === 'observed' || statuses[m.id] === 'reported'
+    ).length;
+    return { seen, total: items.length };
+  };
+
+  const tallies = [
+    { label: t.parent.receptive_gauge, fill: 'bg-achieved', ...bandDomainTally('language_receptive') },
+    { label: t.parent.expressive_gauge, fill: 'bg-emerging', ...bandDomainTally('language_expressive') },
+    {
+      label: t.parent.auditory_gauge,
+      fill: 'bg-brand-600 dark:bg-brand-400',
+      ...bandDomainTally('auditory_hearing'),
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4 dark:border-slate-800">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/parent"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              {t.parent.tracker_title}
-            </h1>
-            <p className="text-xs text-slate-500">
-              {child ? `Tracking ${child.nameOrInitials} (${ageResult.chronologicalText[language] || ageResult.chronologicalText.en})` : 'Child Developmental Milestones'}
-            </p>
+    <div className="bg-surface-canvas">
+      {/* ================= Header ================= */}
+      <div className="border-b border-line-rule bg-surface-raised">
+        <div className="mx-auto max-w-[1240px] px-[18px] pb-6 pt-8 sm:px-6 lg:px-9">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <Link
+                href="/parent"
+                aria-label={t.common.back}
+                className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-warm text-ink-body"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+              <div>
+                <div className="eyebrow tracking-[0.1em] text-parent-600">{t.parent.welcome}</div>
+                <h1 className="mt-2.5 font-display text-[30px] font-extrabold leading-[1.1] text-ink sm:text-[38px]">
+                  {t.parent.tracker_title}
+                </h1>
+                {child && (
+                  <p className="mt-2 text-[13px] text-ink-muted">
+                    Tracking {child.nameOrInitials} ·{' '}
+                    {ageResult.chronologicalText[language] || ageResult.chronologicalText.en}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {child && (
+              <Link
+                href={`/professional/${child.id}/report`}
+                className="focus-ring inline-flex min-h-[46px] items-center rounded-full border border-line-warm px-4 text-[13px] font-semibold text-ink-body"
+              >
+                {t.parent.share_with_doctor}
+              </Link>
+            )}
           </div>
         </div>
-
-        {child && (
-          <Link href={`/professional/${child.id}/report`}>
-            <Button variant="outline" size="sm">
-              <Printer className="h-4 w-4" />
-              <span>{t.parent.share_with_doctor}</span>
-            </Button>
-          </Link>
-        )}
       </div>
 
-      {/* Age Band Selection Carousel / Pills */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            {t.parent.choose_age}:
-          </span>
-          <span className="text-xs text-slate-400">
-            {completedInBand} of {totalInBand} completed in this stage
-          </span>
+      <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
+        <MilestoneTickTracker statuses={statuses} />
+
+        {/* Age band selector sits under the tracker: the rail shows the whole
+            journey, the chips pick the band you are ticking today. */}
+        <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
+          <div className="text-[13px] font-semibold text-ink-soft">{t.parent.choose_age}</div>
+          <div className="scroll-rail mt-3 sm:flex-wrap sm:overflow-visible">
+            {AGE_BANDS.map((b) => {
+              const selected = selectedAgeBand === b.months;
+              return (
+                <button
+                  key={b.months}
+                  type="button"
+                  onClick={() => setSelectedAgeBand(b.months)}
+                  aria-pressed={selected}
+                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm transition-colors ${
+                    selected
+                      ? 'bg-parent-600 font-semibold text-white dark:text-ink-invert'
+                      : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
+                  }`}
+                >
+                  {b.label[language] || b.label.en}
+                </button>
+              );
+            })}
+          </div>
+          {band && (
+            <p className="mt-3.5 text-xs text-ink-warm">
+              {band.rangeDescription[language] || band.rangeDescription.en}
+            </p>
+          )}
+        </section>
+
+        {/* Band tallies — a raw count always sits beside the bar */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {tallies.map((tally) => (
+            <div
+              key={tally.label}
+              className="rounded-card border border-line-warm bg-surface-raised p-5"
+            >
+              <div className="text-[13px] font-semibold text-ink-body">{tally.label}</div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="font-display text-[32px] font-extrabold leading-none tabular-nums text-ink">
+                  {tally.seen}
+                </span>
+                <span className="text-[13px] text-ink-warm">of {tally.total} seen</span>
+              </div>
+              <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-line-rule">
+                <div
+                  className={`h-full rounded-full transition-[width] duration-500 ${tally.fill}`}
+                  style={{ width: `${tally.total ? (tally.seen / tally.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Scrollable Age Band Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {AGE_BANDS.map((band) => {
-            const isSelected = selectedAgeBand === band.months;
+        {/* Domain filters */}
+        <div className="scroll-rail">
+          {DOMAIN_FILTERS.map((filter) => {
+            const selected = selectedDomain === filter.value;
             return (
               <button
-                key={band.months}
-                onClick={() => setSelectedAgeBand(band.months)}
-                className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all shrink-0 ${
-                  isSelected
-                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20 scale-105'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                key={filter.value}
+                type="button"
+                onClick={() => setSelectedDomain(filter.value)}
+                aria-pressed={selected}
+                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
+                  selected
+                    ? 'bg-ink font-semibold text-surface-raised'
+                    : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
                 }`}
               >
-                {band.label[language] || band.label.en}
+                {filter.label}
               </button>
             );
           })}
         </div>
 
-        {/* Progress Bar for selected band */}
-        <ProgressBar value={completedInBand} max={totalInBand || 1} colorClass="bg-rose-500" />
-      </div>
+        {/* Milestone cards */}
+        <div className="flex flex-col gap-4">
+          {milestonesInBand.length === 0 ? (
+            <div className="rounded-card border border-line-warm bg-surface-raised px-6 py-12 text-center text-[13px] text-ink-muted">
+              No milestones found for this age and domain filter. Choose another age or filter!
+            </div>
+          ) : (
+            milestonesInBand.map((milestone) => (
+              <ParentMilestoneCard
+                key={milestone.id}
+                milestone={milestone}
+                status={statuses[milestone.id] || 'not_observed'}
+                onStatusChange={(newStatus) => handleStatusChange(milestone.id, newStatus)}
+              />
+            ))
+          )}
+        </div>
 
-      {/* Domain Filters */}
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <button
-          onClick={() => setSelectedDomain('all')}
-          className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
-            selectedDomain === 'all'
-              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-          }`}
-        >
-          All Skills
-        </button>
-        <button
-          onClick={() => setSelectedDomain('language_receptive')}
-          className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
-            selectedDomain === 'language_receptive'
-              ? 'bg-sky-600 text-white'
-              : 'bg-sky-50 text-sky-700 hover:bg-sky-100 dark:bg-sky-950/40 dark:text-sky-300'
-          }`}
-        >
-          Understanding Words (Receptive)
-        </button>
-        <button
-          onClick={() => setSelectedDomain('language_expressive')}
-          className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
-            selectedDomain === 'language_expressive'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
-          }`}
-        >
-          Talking & Gestures (Expressive)
-        </button>
-        <button
-          onClick={() => setSelectedDomain('auditory_hearing')}
-          className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
-            selectedDomain === 'auditory_hearing'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300'
-          }`}
-        >
-          Hearing & Listening (Auditory)
-        </button>
-        <button
-          onClick={() => setSelectedDomain('social_pragmatic')}
-          className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
-            selectedDomain === 'social_pragmatic'
-              ? 'bg-purple-600 text-white'
-              : 'bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-300'
-          }`}
-        >
-          Social & Play
-        </button>
-      </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <NotePanel tone="achieved">{t.parent.gentle_note}</NotePanel>
+          <NotePanel tone="parent">{t.parent.bilingual_reassurance}</NotePanel>
+        </div>
 
-      {/* Milestone Cards Grid */}
-      <div className="space-y-4">
-        {milestonesInBand.length === 0 ? (
-          <Card className="text-center py-12 text-xs text-slate-500">
-            No milestones found for this age and domain filter. Choose another age or filter!
-          </Card>
-        ) : (
-          milestonesInBand.map((milestone) => (
-            <ParentMilestoneCard
-              key={milestone.id}
-              milestone={milestone}
-              status={statuses[milestone.id] || 'not_observed'}
-              onStatusChange={(newStatus) => handleStatusChange(milestone.id, newStatus)}
-            />
-          ))
+        {child && (
+          <Link
+            href={`/professional/${child.id}/report`}
+            className="focus-ring inline-flex min-h-[54px] items-center justify-center rounded-full bg-ink px-6 text-[15px] font-semibold text-surface-raised"
+          >
+            {t.parent.share_with_doctor}
+          </Link>
         )}
       </div>
-
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { HIGH_RISK_REGISTER_ITEMS } from '@/data/highRiskRegister';
 import { evaluateHRRTriage, HRRTriageResult } from '@/lib/hrrTriageEngine';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { useLanguage } from '@/context/LanguageContext';
+import BrandMark from '@/components/ui/BrandMark';
 import { Button, Badge, StatusDotBadge } from '@/components/ui/Primitives';
 
 interface HRRTriageReportViewProps {
@@ -51,7 +52,7 @@ export default function HRRTriageReportView({ child, hrrRecord }: HRRTriageRepor
       {/* Top Action Bar (Hidden in Print) */}
       <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-600 text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-risk text-white">
             <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
@@ -84,7 +85,7 @@ export default function HRRTriageReportView({ child, hrrRecord }: HRRTriageRepor
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-5 w-5 text-rose-600" />
-              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 HIGH RISK REGISTER (HRR) TRIAGE REPORT
               </h1>
             </div>

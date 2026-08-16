@@ -29,31 +29,58 @@ export default function ClinicalReferencePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
       
-      {/* Top Banner */}
-      <div className="rounded-3xl border border-purple-200/80 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-8 text-white shadow-elevated">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
-              <Brain className="h-3.5 w-3.5 text-purple-300" />
-              <span>Comprehensive Clinical Knowledge Hub</span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-              Speech & Language Subsystems Guide
-            </h1>
-            <p className="text-xs sm:text-sm text-purple-200 max-w-2xl leading-relaxed">
-              Clinical definitions, typical trajectory timelines, red flags, and Indian bilingual developmental nuances (Hindi, Kannada, English).
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Badge variant="purple" className="text-xs py-1 px-3 bg-white/10 border-white/20 text-white">
-              LEST Trivandrum Validation
-            </Badge>
-            <Badge variant="info" className="text-xs py-1 px-3 bg-white/10 border-white/20 text-white">
-              7 Subsystem Modules
-            </Badge>
-          </div>
+      {/* Clinical Hub header */}
+      <div>
+        <div className="eyebrow tracking-[0.1em] text-brand-600 dark:text-brand-400">
+          Comprehensive Clinical Knowledge Hub
         </div>
+        <h1 className="mt-2.5 max-w-[34ch] font-display text-[28px] font-extrabold leading-[1.12] text-ink sm:text-[34px]">
+          Speech &amp; Language Subsystems Guide
+        </h1>
+        <p className="mt-3 max-w-[78ch] text-sm leading-[1.6] text-ink-soft">
+          Clinical definitions, typical trajectory timelines, red flags, and Indian bilingual
+          developmental nuances (Hindi, Kannada, English).
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Badge variant="info">LEST Trivandrum Validation</Badge>
+          <Badge variant="info">7 Subsystem Modules</Badge>
+        </div>
+      </div>
+
+      {/* The destinations that left the top bar live here, in the hub they
+          belong to, reached from a module grid. */}
+      <div className="grid gap-px overflow-hidden rounded-card border border-line-warm bg-line-warm sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          {
+            href: '/auditory-development',
+            title: 'Auditory & Hearing Milestones',
+            body: "Northern & Downs sound localization maturation, AIISH Mysuru screening, and Erber's 4 auditory levels.",
+          },
+          {
+            href: '/speech-sound-matrix',
+            title: 'Crowe & McLeod (2020) Sound Matrix',
+            body: 'Early-8, Middle-8 and Late-8 consonant windows with English, Hindi and Kannada word examples.',
+          },
+          {
+            href: '/high-risk-register',
+            title: 'High Risk Register (HRR)',
+            body: 'JCIH 2019 and Indian RBSK / AIISH risk surveillance with automated triage stratification.',
+          },
+          {
+            href: '/sources',
+            title: 'Sources & Citations',
+            body: 'Every norm, guideline and publication this tracker is built on, with full references.',
+          },
+        ].map((mod) => (
+          <Link
+            key={mod.href}
+            href={mod.href}
+            className="focus-ring flex flex-col gap-2.5 bg-surface-raised p-6 transition-colors hover:bg-surface-tint"
+          >
+            <h2 className="font-sans text-base font-semibold leading-[1.3] text-ink">{mod.title}</h2>
+            <p className="text-[13px] leading-[1.6] text-ink-muted">{mod.body}</p>
+          </Link>
+        ))}
       </div>
 
       {/* Category Tabs */}
