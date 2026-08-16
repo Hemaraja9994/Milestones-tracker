@@ -19,6 +19,8 @@ const DOMAIN_FILTERS: { value: string; label: string }[] = [
   { value: 'language_expressive', label: 'Talking & Gestures (Expressive)' },
   { value: 'auditory_hearing', label: 'Hearing & Listening (Auditory)' },
   { value: 'social_pragmatic', label: 'Social & Play' },
+  { value: 'speech_articulation', label: 'Speech Sounds' },
+  { value: 'cognitive', label: 'Thinking & Problem Solving' },
 ];
 
 export default function ParentMilestoneTracker() {

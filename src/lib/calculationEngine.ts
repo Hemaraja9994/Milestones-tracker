@@ -1,5 +1,5 @@
 import { Milestone, MilestoneStatus, MilestoneDomain, ChildProfile, RedFlagItem } from '@/types';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { CLINICAL_RED_FLAGS } from '@/data/redFlags';
 import { AGE_BANDS } from '@/data/ageBands';
 
@@ -41,7 +41,7 @@ export function computeClinicalSnapshot(
     let highestEmergingBand = ageBandValues[0];
 
     for (const band of ageBandValues) {
-      const itemsInBand = COMPREHENSIVE_MILESTONES.filter(
+      const itemsInBand = ALL_MILESTONES.filter(
         m => m.ageBandMonths === band && m.domain === targetDomain
       );
       if (itemsInBand.length === 0) continue;
@@ -73,7 +73,7 @@ export function computeClinicalSnapshot(
     const bandDiff = nextBand - highestMasteredBand;
     
     // Check items in next band for partial credit
-    const nextBandItems = COMPREHENSIVE_MILESTONES.filter(
+    const nextBandItems = ALL_MILESTONES.filter(
       m => m.ageBandMonths === nextBand && m.domain === targetDomain
     );
     let partialRatio = 0;
@@ -113,7 +113,7 @@ export function computeClinicalSnapshot(
 
   for (const dom of domains) {
     // Only calculate for items up to child's approximate age window or checked items
-    const relevantItems = COMPREHENSIVE_MILESTONES.filter(m => m.domain === dom);
+    const relevantItems = ALL_MILESTONES.filter(m => m.domain === dom);
     let obs = 0;
     let rep = 0;
     let emg = 0;
@@ -146,7 +146,7 @@ export function computeClinicalSnapshot(
   for (const rf of CLINICAL_RED_FLAGS) {
     if (effectiveAgeMonths >= rf.ageBandMonths) {
       // Find corresponding milestones in that band/domain that are not observed
-      const missingMilestones = COMPREHENSIVE_MILESTONES.filter(
+      const missingMilestones = ALL_MILESTONES.filter(
         m => m.ageBandMonths === rf.ageBandMonths && 
              m.domain === rf.domain && 
              m.isRedFlag && 
