@@ -66,8 +66,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b border-line-rule bg-surface-raised">
       <div className="mx-auto flex h-[60px] max-w-[1240px] items-center justify-between gap-8 px-4 sm:px-6 lg:h-[72px] lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <BrandMark size={26} />
-          <span className="font-display text-[19px] font-extrabold tracking-[-0.01em] text-ink lg:text-[21px]">
+          <BrandMark size={28} />
+          <span className="font-display text-[18px] font-extrabold tracking-[-0.01em] text-ink">
             MilestonePath
           </span>
         </Link>
@@ -97,7 +97,6 @@ export default function Navbar() {
           {/* Segmented language switcher — always visible, never behind a menu */}
           <div
             role="group"
-            aria-label={t.nav.select_language}
             className="hidden rounded-full border border-line-warm bg-surface-sunken p-[3px] text-xs font-semibold sm:flex"
           >
             {languages.map((l) => (
@@ -133,7 +132,7 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
             aria-label="Toggle navigation menu"
-            className="focus-ring flex h-10 w-10 items-center justify-center rounded-xl border border-line-warm text-ink-body lg:hidden"
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-line-warm text-ink-body lg:hidden"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -154,7 +153,7 @@ export default function Navbar() {
                     link.role && setActiveRole(link.role);
                     setMobileMenuOpen(false);
                   }}
-                  className={`flex min-h-[52px] items-center rounded-xl px-3 text-[15px] ${
+                  className={`flex min-h-[52px] items-center rounded-full px-3 text-[15px] ${
                     active ? 'font-semibold text-ink' : 'text-ink-body'
                   }`}
                 >
@@ -172,7 +171,7 @@ export default function Navbar() {
                 onClick={() => setLanguage(l.code)}
                 aria-pressed={language === l.code}
                 lang={l.code}
-                className={`focus-ring min-h-[46px] flex-1 rounded-xl border text-sm font-semibold transition-colors ${
+                className={`focus-ring min-h-[46px] flex-1 rounded-full border text-sm font-semibold transition-colors ${
                   language === l.code
                     ? 'border-ink bg-ink text-surface-raised'
                     : 'border-line-warm text-ink-body'

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
 import { MilestoneStatus } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -25,7 +25,7 @@ export default function MilestoneTickTracker({
 }) {
   const { t } = useLanguage();
 
-  const { bands, totals } = useMemo(() => {
+  const { bands: fullBands, totals } = useMemo(() => {
     const stateOf = (id: string): TickState => {
       const s = statuses[id];
       if (s === 'observed' || s === 'reported') return 'achieved';
@@ -36,7 +36,7 @@ export default function MilestoneTickTracker({
     const rank: Record<TickState, number> = { achieved: 0, emerging: 1, pending: 2 };
 
     const bands = AGE_BANDS.map((band) => {
-      const items = COMPREHENSIVE_MILESTONES.filter((m) => m.ageBandMonths === band.months);
+      const items = ALL_MILESTONES.filter((m) => m.ageBandMonths === band.months);
       const ticks = items.map((m) => stateOf(m.id)).sort((a, b) => rank[a] - rank[b]);
       return {
         months: band.months,
@@ -48,7 +48,7 @@ export default function MilestoneTickTracker({
     });
 
     const achievedIn = (domain?: string) =>
-      COMPREHENSIVE_MILESTONES.filter(
+      ALL_MILESTONES.filter(
         (m) => (!domain || m.domain === domain) && stateOf(m.id) === 'achieved'
       ).length;
 
@@ -56,13 +56,56 @@ export default function MilestoneTickTracker({
       bands,
       totals: {
         ticked: achievedIn(),
-        all: COMPREHENSIVE_MILESTONES.length,
+        all: ALL_MILESTONES.length,
         receptive: achievedIn('language_receptive'),
         expressive: achievedIn('language_expressive'),
         auditory: achievedIn('auditory_hearing'),
       },
     };
   }, [statuses]);
+
+  /* On mount the ticks land sequentially at ~90ms each. `landed` is the single
+     source of truth: both the rail and the headline count read from it, so the
+     number can never disagree with the rail. prefers-reduced-motion skips
+     straight to the final state. */
+  const [landed, setLanded] = useState(totals.ticked);
+
+  useEffect(() => {
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced || totals.ticked === 0) {
+      setLanded(totals.ticked);
+      return;
+    }
+
+    setLanded(0);
+    let n = 0;
+    const timer = setInterval(() => {
+      n += 1;
+      setLanded(n);
+      if (n >= totals.ticked) clearInterval(timer);
+    }, 90);
+    return () => clearInterval(timer);
+  }, [totals.ticked]);
+
+  /* Reveal achieved ticks in band order up to `landed`; emerging and pending
+     ticks are static. */
+  const bands = useMemo(() => {
+    let budget = landed;
+    return fullBands.map((band) => ({
+      ...band,
+      ticks: band.ticks.map((state) => {
+        if (state !== 'achieved') return state;
+        if (budget > 0) {
+          budget -= 1;
+          return state;
+        }
+        return 'pending' as TickState;
+      }),
+    }));
+  }, [fullBands, landed]);
 
   return (
     <section
@@ -73,7 +116,7 @@ export default function MilestoneTickTracker({
           <div className="eyebrow tracking-[0.08em] text-ink-warm">Milestones ticked</div>
           <div className="mt-1.5 flex items-baseline gap-2">
             <span className="font-display text-[44px] font-extrabold leading-none tabular-nums text-ink sm:text-[52px]">
-              {totals.ticked}
+              {landed}
             </span>
             <span className="text-[15px] text-ink-warm">
               of {totals.all} across {AGE_BANDS.length} age bands
@@ -100,7 +143,7 @@ export default function MilestoneTickTracker({
               {band.ticks.map((state, i) => (
                 <span
                   key={i}
-                  className={`h-3 rounded ${
+                  className={`h-3 rounded transition-colors duration-150 ease-out ${
                     state === 'achieved'
                       ? 'bg-achieved'
                       : state === 'emerging'

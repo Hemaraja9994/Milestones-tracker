@@ -99,7 +99,7 @@ export default function HighRiskRegisterHub() {
                       <Link
                         href={`/high-risk-register/${child.id}`}
                         onClick={() => setActiveChild(child)}
-                        className="focus-ring inline-flex min-h-[40px] items-center gap-1.5 rounded-[10px] border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+                        className="focus-ring inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
                       >
                         {t.hrr.start_screening}
                         <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.2} />

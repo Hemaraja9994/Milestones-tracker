@@ -98,7 +98,7 @@ body {
   color: rgb(var(--ink-body));
   background: rgb(var(--surface-canvas));
   min-height: 100vh;
-  font-family: 'Instrument Sans', 'Noto Sans Devanagari', 'Noto Sans Kannada',
+  font-family: var(--font-sans), var(--font-devanagari), var(--font-kannada),
     system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -113,17 +113,36 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: 'Nunito', 'Noto Sans Devanagari', 'Noto Sans Kannada', system-ui,
-    sans-serif;
+  font-family: var(--font-display), var(--font-devanagari), var(--font-kannada),
+    system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.018em;
   color: rgb(var(--ink));
 }
 
-/* Devanagari and Kannada have taller x-heights, so Indic body copy takes 1.7
-   line-height instead of 1.6. */
-:lang(hi),
-:lang(kn) {
+/* The active language leads the stack, so Devanagari and Kannada glyphs are not
+   left to a fallback face. Devanagari and Kannada also have taller x-heights, so
+   Indic body copy takes 1.7 line-height instead of 1.6. */
+.lang-hi body,
+.lang-hi h1,
+.lang-hi h2,
+.lang-hi h3,
+.lang-hi h4 {
+  font-family: var(--font-devanagari), var(--font-display), var(--font-sans),
+    system-ui, sans-serif;
+}
+
+.lang-kn body,
+.lang-kn h1,
+.lang-kn h2,
+.lang-kn h3,
+.lang-kn h4 {
+  font-family: var(--font-kannada), var(--font-display), var(--font-sans),
+    system-ui, sans-serif;
+}
+
+.lang-hi body,
+.lang-kn body {
   line-height: 1.7;
 }
 

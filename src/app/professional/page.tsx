@@ -201,7 +201,7 @@ export default function ProfessionalDashboard() {
                       <Link
                         href={`/professional/${child.id}`}
                         onClick={() => setActiveChild(child)}
-                        className="focus-ring inline-flex min-h-[40px] items-center rounded-[10px] border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+                        className="focus-ring inline-flex min-h-[40px] items-center rounded-full border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
                       >
                         {t.professional.view_profile}
                       </Link>
@@ -273,7 +273,7 @@ export default function ProfessionalDashboard() {
               <Link
                 href={focusChild ? `/professional/${focusChild.id}/report` : '/professional'}
                 aria-disabled={!focusChild}
-                className={`focus-ring inline-flex min-h-[46px] items-center rounded-[11px] bg-ink px-[18px] text-[13px] font-semibold text-surface-raised ${
+                className={`focus-ring inline-flex min-h-[46px] items-center rounded-full bg-ink px-[18px] text-[13px] font-semibold text-surface-raised ${
                   focusChild ? '' : 'pointer-events-none opacity-50'
                 }`}
               >
@@ -282,7 +282,7 @@ export default function ProfessionalDashboard() {
               <Link
                 href={focusChild ? `/professional/${focusChild.id}/report` : '/professional'}
                 aria-disabled={!focusChild}
-                className={`focus-ring inline-flex min-h-[46px] items-center rounded-[11px] border border-line-warm px-[18px] text-[13px] font-semibold text-ink-body ${
+                className={`focus-ring inline-flex min-h-[46px] items-center rounded-full border border-line-warm px-[18px] text-[13px] font-semibold text-ink-body ${
                   focusChild ? '' : 'pointer-events-none opacity-50'
                 }`}
               >
@@ -322,7 +322,7 @@ export default function ProfessionalDashboard() {
                 type="button"
                 onClick={() => setShowModal(false)}
                 aria-label={t.common.close}
-                className="focus-ring flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:text-ink"
+                className="focus-ring flex h-9 w-9 items-center justify-center rounded-full text-ink-muted hover:text-ink"
               >
                 ✕
               </button>

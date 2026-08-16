@@ -16,8 +16,7 @@
     "clinical_reference": "क्लीनिकल संदर्भ केंद्र",
     "sources": "स्रोत एवं संदर्भ",
     "switch_role": "पोर्टल बदलें",
-    "toggle_theme": "थीम बदलें",
-    "select_language": "भाषा चुनें"
+    "toggle_theme": "थीम बदलें"
   },
   "roles": {
     "professional": "चिकित्सक / विशेषज्ञ (Professional)",

@@ -79,7 +79,7 @@ export default function ParentPortalHome() {
                   type="button"
                   onClick={() => setActiveChild(c)}
                   aria-pressed={child?.id === c.id}
-                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-xl px-[18px] text-sm font-semibold transition-colors ${
+                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm font-semibold transition-colors ${
                     child?.id === c.id
                       ? 'bg-parent-600 text-white dark:text-ink-invert'
                       : 'border border-line-warm bg-surface-raised font-medium text-ink-body'

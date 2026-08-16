@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
 import { MilestoneStatus, AssessmentRecord } from '@/types';
 import ParentMilestoneCard from '@/components/parent/ParentMilestoneCard';
@@ -66,14 +66,14 @@ export default function ParentMilestoneTracker() {
   };
 
   const band = AGE_BANDS.find((b) => b.months === selectedAgeBand);
-  const milestonesInBand = COMPREHENSIVE_MILESTONES.filter(
+  const milestonesInBand = ALL_MILESTONES.filter(
     (m) =>
       m.ageBandMonths === selectedAgeBand &&
       (selectedDomain === 'all' || m.domain === selectedDomain)
   );
 
   const bandDomainTally = (domain: string) => {
-    const items = COMPREHENSIVE_MILESTONES.filter(
+    const items = ALL_MILESTONES.filter(
       (m) => m.ageBandMonths === selectedAgeBand && m.domain === domain
     );
     const seen = items.filter(
@@ -102,7 +102,7 @@ export default function ParentMilestoneTracker() {
               <Link
                 href="/parent"
                 aria-label={t.common.back}
-                className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line-warm text-ink-body"
+                className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-warm text-ink-body"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
@@ -123,16 +123,23 @@ export default function ParentMilestoneTracker() {
             {child && (
               <Link
                 href={`/professional/${child.id}/report`}
-                className="focus-ring inline-flex min-h-[46px] items-center rounded-xl border border-line-warm px-4 text-[13px] font-semibold text-ink-body"
+                className="focus-ring inline-flex min-h-[46px] items-center rounded-full border border-line-warm px-4 text-[13px] font-semibold text-ink-body"
               >
                 {t.parent.share_with_doctor}
               </Link>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Age band chips — horizontal rail at 46px on a phone */}
-          <div className="mt-6 text-[13px] font-semibold text-ink-soft">{t.parent.choose_age}</div>
-          <div className="scroll-rail mt-3">
+      <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
+        <MilestoneTickTracker statuses={statuses} />
+
+        {/* Age band selector sits under the tracker: the rail shows the whole
+            journey, the chips pick the band you are ticking today. */}
+        <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
+          <div className="text-[13px] font-semibold text-ink-soft">{t.parent.choose_age}</div>
+          <div className="scroll-rail mt-3 sm:flex-wrap sm:overflow-visible">
             {AGE_BANDS.map((b) => {
               const selected = selectedAgeBand === b.months;
               return (
@@ -141,7 +148,7 @@ export default function ParentMilestoneTracker() {
                   type="button"
                   onClick={() => setSelectedAgeBand(b.months)}
                   aria-pressed={selected}
-                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-xl px-[18px] text-sm transition-colors ${
+                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm transition-colors ${
                     selected
                       ? 'bg-parent-600 font-semibold text-white dark:text-ink-invert'
                       : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
@@ -157,11 +164,7 @@ export default function ParentMilestoneTracker() {
               {band.rangeDescription[language] || band.rangeDescription.en}
             </p>
           )}
-        </div>
-      </div>
-
-      <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
-        <MilestoneTickTracker statuses={statuses} />
+        </section>
 
         {/* Band tallies — a raw count always sits beside the bar */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -197,7 +200,7 @@ export default function ParentMilestoneTracker() {
                 type="button"
                 onClick={() => setSelectedDomain(filter.value)}
                 aria-pressed={selected}
-                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-xl px-4 text-[13px] transition-colors ${
+                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
                   selected
                     ? 'bg-ink font-semibold text-surface-raised'
                     : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'

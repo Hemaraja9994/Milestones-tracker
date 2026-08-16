@@ -30,7 +30,7 @@ export default function HomePage() {
           <h1 className="mx-auto mt-6 max-w-[15ch] font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.025em] text-ink sm:text-[54px] lg:text-[68px]">
             {t.app.title}
           </h1>
-          <p className="mx-auto mt-3.5 max-w-[34ch] text-[17px] font-medium leading-[1.35] text-brand-600 dark:text-brand-400 lg:text-[22px]">
+          <p className="mx-auto mt-3.5 max-w-[34ch] text-[17px] font-medium leading-[1.35] text-parent-600 lg:text-[22px]">
             {t.app.subtitle}
           </p>
           <p className="mx-auto mt-5 max-w-[70ch] text-sm leading-[1.65] text-ink-soft lg:text-[15px]">
@@ -117,13 +117,13 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/parent/tracker"
-                className="focus-ring inline-flex min-h-[48px] items-center rounded-xl bg-white px-5 text-sm font-semibold text-brand-900"
+                className="focus-ring inline-flex min-h-[48px] items-center rounded-full bg-white px-5 text-sm font-semibold text-brand-900"
               >
                 Start Tracking Free
               </Link>
               <Link
                 href="/sources"
-                className="focus-ring inline-flex min-h-[48px] items-center rounded-xl border border-white/45 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                className="focus-ring inline-flex min-h-[48px] items-center rounded-full border border-white/45 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
                 View Scientific Sources
               </Link>
@@ -166,7 +166,7 @@ function PathwayCard({
     <button
       type="button"
       onClick={onClick}
-      className={`focus-ring group flex flex-col rounded-panel border border-line-warm bg-surface-raised p-6 text-left shadow-elevated transition-colors sm:p-[30px] ${
+      className={`focus-ring group flex flex-col rounded-panel border border-line-warm bg-surface-raised p-6 text-left shadow-elevated transition-shadow duration-150 ease-out hover:shadow-frame sm:p-[30px] ${
         clinician
           ? 'border-l-4 border-l-brand-600 md:border-l md:border-l-line-warm md:border-t-4 md:border-t-brand-600'
           : 'border-l-4 border-l-parent-600 md:border-l md:border-l-line-warm md:border-t-4 md:border-t-parent-600'
@@ -207,7 +207,10 @@ function PathwayCard({
         }`}
       >
         {cta}
-        <ArrowRight className="h-[17px] w-[17px]" strokeWidth={2.2} />
+        <ArrowRight
+          className="h-[17px] w-[17px] transition-transform duration-150 ease-out group-hover:translate-x-1"
+          strokeWidth={2.2}
+        />
       </span>
     </button>
   );

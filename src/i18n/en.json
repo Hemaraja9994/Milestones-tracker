@@ -16,8 +16,7 @@
     "clinical_reference": "Clinical Hub",
     "sources": "Sources & Citations",
     "switch_role": "Switch Portal",
-    "toggle_theme": "Toggle Theme",
-    "select_language": "Select Language"
+    "toggle_theme": "Toggle Theme"
   },
   "roles": {
     "professional": "Clinician / Professional",

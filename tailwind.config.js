@@ -294,30 +294,11 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: [
-          'Instrument Sans',
-          'Noto Sans Devanagari',
-          'Noto Sans Kannada',
-          'system-ui',
-          '-apple-system',
-          'Segoe UI',
-          'Roboto',
-          'sans-serif',
-        ],
-        display: [
-          'Nunito',
-          'Noto Sans Devanagari',
-          'Noto Sans Kannada',
-          'system-ui',
-          'sans-serif',
-        ],
-        serif: [
-          'Nunito',
-          'Noto Sans Devanagari',
-          'Noto Sans Kannada',
-          'system-ui',
-          'sans-serif',
-        ],
+        /* The Indic variables come first in the stack only under .lang-hi /
+           .lang-kn; see globals.css. */
+        sans: ['var(--font-sans)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-display)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         card: '1rem',

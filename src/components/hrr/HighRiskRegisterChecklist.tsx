@@ -148,7 +148,7 @@ export default function HighRiskRegisterChecklist({
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
                 aria-pressed={selected}
-                className={`focus-ring inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-[11px] px-4 text-[13px] transition-colors ${
+                className={`focus-ring inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-full px-4 text-[13px] transition-colors ${
                   selected
                     ? 'bg-ink font-semibold text-surface-raised'
                     : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
@@ -237,7 +237,7 @@ export default function HighRiskRegisterChecklist({
                               type="button"
                               onClick={() => updateSource(item.id, source)}
                               aria-pressed={selected}
-                              className={`focus-ring inline-flex min-h-[44px] items-center rounded-[11px] px-3.5 text-[13px] transition-colors ${
+                              className={`focus-ring inline-flex min-h-[44px] items-center rounded-full px-3.5 text-[13px] transition-colors ${
                                 selected
                                   ? 'bg-brand-tint font-semibold text-ink'
                                   : 'border border-line-warm font-medium text-ink-soft hover:text-ink'

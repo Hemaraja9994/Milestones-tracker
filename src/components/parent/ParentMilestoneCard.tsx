@@ -2,13 +2,23 @@
 
 import React from 'react';
 import confetti from 'canvas-confetti';
-import { Check, Ear, Brain, MessageSquare, Users, AudioLines, LucideIcon } from 'lucide-react';
-import { Milestone, MilestoneStatus } from '@/types';
+import {
+  Check,
+  Ear,
+  Brain,
+  MessageSquare,
+  Users,
+  AudioLines,
+  PlayCircle,
+  LucideIcon,
+} from 'lucide-react';
+import { MilestoneStatus } from '@/types';
+import type { MilestoneWithMedia } from '@/data/allMilestones';
 import { Badge, Citation } from '@/components/ui/Primitives';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface ParentMilestoneCardProps {
-  milestone: Milestone;
+  milestone: MilestoneWithMedia;
   status: MilestoneStatus;
   onStatusChange: (status: MilestoneStatus) => void;
 }
@@ -131,6 +141,20 @@ export default function ParentMilestoneCard({
         >
           {t.status_labels.parent_not_yet}
         </StatusButton>
+
+        {/* "Watch this milestone" — only renders for milestones that carry a
+            media or source link. */}
+        {(milestone.mediaUrl || milestone.sourceUrl) && (
+          <a
+            href={milestone.mediaUrl || milestone.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="focus-ring ml-auto inline-flex min-h-[52px] items-center gap-2 rounded-full border border-line-warm px-5 text-sm font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+          >
+            <PlayCircle className="h-[17px] w-[17px]" strokeWidth={2} />
+            Watch this milestone
+          </a>
+        )}
       </div>
     </article>
   );
@@ -184,7 +208,7 @@ function StatusButton({
       role="radio"
       aria-checked={selected}
       onClick={onClick}
-      className={`focus-ring inline-flex min-h-[52px] items-center gap-2.5 rounded-xl px-5 text-[15px] font-semibold transition-colors ${
+      className={`focus-ring inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-6 text-[15px] font-semibold transition-colors ${
         selected ? selectedClass : idleClass
       }`}
     >

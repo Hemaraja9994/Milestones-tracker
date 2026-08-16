@@ -1,10 +1,42 @@
 import type { Metadata } from 'next';
+import { Nunito, Instrument_Sans, Noto_Sans_Devanagari, Noto_Sans_Kannada } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ChildProvider } from '@/context/ChildContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import LanguageShell from '@/components/layout/LanguageShell';
+
+/* Nunito 700/800 carries display type; Instrument Sans carries all UI.
+   Noto Sans Devanagari and Noto Sans Kannada cover Hindi and Kannada. */
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['700', '800'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari'],
+  weight: ['400', '600'],
+  variable: '--font-devanagari',
+  display: 'swap',
+});
+
+const notoKannada = Noto_Sans_Kannada({
+  subsets: ['kannada'],
+  weight: ['400', '600'],
+  variable: '--font-kannada',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'MilestonePath – Child Developmental & Speech-Language Tracker',
@@ -35,19 +67,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`lang-en ${nunito.variable} ${instrumentSans.variable} ${notoDevanagari.variable} ${notoKannada.variable}`}
+    >
       <body className="min-h-screen flex flex-col bg-surface-canvas text-ink-body antialiased">
         <ThemeProvider>
           <LanguageProvider>
             <ChildProvider>
+              <LanguageShell />
               <Navbar />
               <main className="flex-1 w-full">{children}</main>
               <Footer />

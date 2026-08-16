@@ -8,7 +8,7 @@ import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { computeClinicalSnapshot } from '@/lib/calculationEngine';
-import { COMPREHENSIVE_MILESTONES } from '@/data/milestones';
+import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
 import { MilestoneStatus, AssessmentRecord } from '@/types';
 import { Button } from '@/components/ui/Primitives';
@@ -88,7 +88,7 @@ export default function ChildAssessmentWorkspace() {
     );
   }
 
-  const filteredMilestones = COMPREHENSIVE_MILESTONES.filter(
+  const filteredMilestones = ALL_MILESTONES.filter(
     (m) =>
       (selectedAgeBand === 0 || m.ageBandMonths === selectedAgeBand) &&
       (selectedDomain === 'all' || m.domain === selectedDomain)
@@ -103,7 +103,7 @@ export default function ChildAssessmentWorkspace() {
             <Link
               href="/professional"
               aria-label={t.common.back}
-              className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line-warm text-ink-body"
+              className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-warm text-ink-body"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -124,7 +124,7 @@ export default function ChildAssessmentWorkspace() {
             </Button>
             <Link
               href={`/professional/${child.id}/report`}
-              className="focus-ring inline-flex min-h-[46px] items-center rounded-xl bg-ink px-4 text-[13px] font-semibold text-surface-raised"
+              className="focus-ring inline-flex min-h-[46px] items-center rounded-full bg-ink px-4 text-[13px] font-semibold text-surface-raised"
             >
               {t.common.export_pdf}
             </Link>
@@ -266,7 +266,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`focus-ring inline-flex min-h-[42px] shrink-0 items-center rounded-[11px] px-4 text-[13px] transition-colors ${
+      className={`focus-ring inline-flex min-h-[42px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
         selected
           ? 'bg-brand-600 font-semibold text-white dark:text-ink-invert'
           : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'

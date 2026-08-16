@@ -96,7 +96,7 @@ export default function MilestoneAssessmentRow({
               role="radio"
               aria-checked={selected}
               onClick={() => onStatusChange(opt.value)}
-              className={`focus-ring inline-flex min-h-[46px] items-center justify-center rounded-xl px-3 text-center text-[13px] font-semibold transition-colors ${
+              className={`focus-ring inline-flex min-h-[46px] items-center justify-center rounded-full px-3 text-center text-[13px] font-semibold transition-colors ${
                 selected
                   ? opt.activeClass
                   : 'border border-line-warm bg-surface-raised text-ink-body hover:text-ink'

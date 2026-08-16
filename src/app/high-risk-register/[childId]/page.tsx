@@ -46,7 +46,7 @@ export default function ChildHRRScreeningPage() {
           <Link
             href="/high-risk-register"
             aria-label={t.common.back}
-            className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line-warm text-ink-body"
+            className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-warm text-ink-body"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
