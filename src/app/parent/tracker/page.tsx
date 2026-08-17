@@ -13,6 +13,8 @@ import { ChildProfile, MilestoneStatus, AssessmentRecord } from '@/types';
 import ParentMilestoneCard from '@/components/parent/ParentMilestoneCard';
 import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
 import FirstRunPanel from '@/components/parent/FirstRunPanel';
+import MilestoneArt from '@/components/parent/MilestoneArt';
+import MilestoneJourney from '@/components/parent/MilestoneJourney';
 import { Badge, NotePanel } from '@/components/ui/Primitives';
 
 const DOMAIN_FILTERS: { value: string; label: string }[] = [
@@ -191,36 +193,20 @@ export default function ParentMilestoneTracker() {
         )}
         <MilestoneTickTracker statuses={statuses} />
 
-        {/* Age band selector sits under the tracker: the rail shows the whole
-            journey, the chips pick the band you are ticking today. */}
-        <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
-          <div className="text-[13px] font-semibold text-ink-soft">{t.parent.choose_age}</div>
-          <div className="scroll-rail mt-3 sm:flex-wrap sm:overflow-visible">
-            {AGE_BANDS.map((b) => {
-              const selected = selectedAgeBand === b.months;
-              return (
-                <button
-                  key={b.months}
-                  type="button"
-                  onClick={() => setSelectedAgeBand(b.months)}
-                  aria-pressed={selected}
-                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm transition-colors ${
-                    selected
-                      ? 'bg-parent-600 font-semibold text-white dark:text-ink-invert'
-                      : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
-                  }`}
-                >
-                  {b.label[language] || b.label.en}
-                </button>
-              );
-            })}
-          </div>
-          {band && (
-            <p className="mt-3.5 text-xs text-ink-warm">
-              {band.rangeDescription[language] || band.rangeDescription.en}
-            </p>
-          )}
-        </section>
+        {/* The map is the selector: stops carry their own progress, so the
+            parent sees where they are in the whole 0-6 journey. */}
+        <MilestoneJourney
+          statuses={statuses}
+          selectedAgeBand={selectedAgeBand}
+          onSelect={setSelectedAgeBand}
+        />
+
+        {band && (
+          <p className="-mt-1 px-1 text-xs text-ink-warm">
+            Showing <strong className="font-semibold text-ink-body">{band.label[language] || band.label.en}</strong>{' '}
+            · {band.rangeDescription[language] || band.rangeDescription.en}
+          </p>
+        )}
 
         {/* Band tallies — a raw count always sits beside the bar */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -256,12 +242,13 @@ export default function ParentMilestoneTracker() {
                 type="button"
                 onClick={() => setSelectedDomain(filter.value)}
                 aria-pressed={selected}
-                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
+                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center gap-2 rounded-full pl-3 pr-4 text-[13px] transition-colors ${
                   selected
                     ? 'bg-ink font-semibold text-surface-raised'
                     : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
                 }`}
               >
+                {filter.value !== 'all' && <MilestoneArt name={filter.value} size={24} />}
                 {filter.label}
               </button>
             );

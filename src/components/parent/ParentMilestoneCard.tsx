@@ -2,16 +2,8 @@
 
 import React from 'react';
 import confetti from 'canvas-confetti';
-import {
-  Check,
-  Ear,
-  Brain,
-  MessageSquare,
-  Users,
-  AudioLines,
-  PlayCircle,
-  LucideIcon,
-} from 'lucide-react';
+import { Check, PlayCircle } from 'lucide-react';
+import MilestoneArt from '@/components/parent/MilestoneArt';
 import { MilestoneStatus } from '@/types';
 import type { MilestoneWithMedia } from '@/data/allMilestones';
 import { Badge, Citation } from '@/components/ui/Primitives';
@@ -22,14 +14,6 @@ interface ParentMilestoneCardProps {
   status: MilestoneStatus;
   onStatusChange: (status: MilestoneStatus) => void;
 }
-
-const DOMAIN_ICONS: Record<string, LucideIcon> = {
-  auditory_hearing: Ear,
-  language_receptive: Brain,
-  language_expressive: MessageSquare,
-  speech_articulation: AudioLines,
-  social_pragmatic: Users,
-};
 
 export default function ParentMilestoneCard({
   milestone,
@@ -58,15 +42,17 @@ export default function ParentMilestoneCard({
     }
   };
 
-  const Icon = DOMAIN_ICONS[milestone.domain] || Brain;
-
   return (
     <article className="overflow-hidden rounded-panel border border-line-warm bg-surface-raised">
       {/* -------- Head -------- */}
       <div className="flex flex-wrap items-start justify-between gap-5 px-5 pb-5 pt-6 sm:px-7">
         <div className="flex flex-1 gap-4">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-brand-tint text-brand-600 dark:text-brand-400">
-            <Icon className="h-6 w-6" strokeWidth={1.8} />
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] bg-brand-tint text-brand-600 dark:text-brand-400">
+            <MilestoneArt
+              name={milestone.domain}
+              size={44}
+              title={t.domains[milestone.domain] || milestone.domain}
+            />
           </span>
 
           <div className="min-w-0">
