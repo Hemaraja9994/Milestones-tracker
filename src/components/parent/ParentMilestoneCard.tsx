@@ -2,8 +2,15 @@
 
 import React from 'react';
 import confetti from 'canvas-confetti';
-import { Check, PlayCircle } from 'lucide-react';
+import { Check, PenLine, PlayCircle } from 'lucide-react';
 import MilestoneArt from '@/components/parent/MilestoneArt';
+import ObservationSheet, { ObservationToast } from '@/components/parent/ObservationSheet';
+import {
+  Observation,
+  deleteObservation,
+  getObservationsFor,
+  saveObservation,
+} from '@/lib/storage';
 import { MilestoneStatus } from '@/types';
 import type { MilestoneWithMedia } from '@/data/allMilestones';
 import { Badge, Citation } from '@/components/ui/Primitives';
@@ -13,14 +20,40 @@ interface ParentMilestoneCardProps {
   milestone: MilestoneWithMedia;
   status: MilestoneStatus;
   onStatusChange: (status: MilestoneStatus) => void;
+  /** Observations are per child; omit to hide the action entirely. */
+  childId?: string;
 }
 
 export default function ParentMilestoneCard({
   milestone,
   status,
   onStatusChange,
+  childId,
 }: ParentMilestoneCardProps) {
   const { language, t } = useLanguage();
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [observations, setObservations] = React.useState<Observation[]>([]);
+  const [lastSaved, setLastSaved] = React.useState<Observation | null>(null);
+
+  React.useEffect(() => {
+    if (childId) setObservations(getObservationsFor(childId, milestone.id));
+  }, [childId, milestone.id]);
+
+  const handleSaveObservation = (text: string) => {
+    if (!childId) return;
+    // Never touches milestoneStatuses — an observation is not a status.
+    const saved = saveObservation({ childId, milestoneId: milestone.id, text });
+    setObservations(getObservationsFor(childId, milestone.id));
+    setLastSaved(saved);
+    setSheetOpen(false);
+  };
+
+  const handleUndo = () => {
+    if (!lastSaved || !childId) return;
+    deleteObservation(lastSaved.id);
+    setObservations(getObservationsFor(childId, milestone.id));
+    setLastSaved(null);
+  };
 
   const isCompleted = status === 'observed' || status === 'reported';
   const isEmerging = status === 'emerging';
@@ -142,6 +175,49 @@ export default function ParentMilestoneCard({
           </a>
         )}
       </div>
+
+      {childId && (
+        <div className="border-t border-page px-5 pb-5 sm:px-7">
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="focus-ring sig-press mt-5 inline-flex min-h-[52px] items-center gap-2 rounded-control border-2 border-dashed border-line-soft px-5 text-[15px] font-semibold text-parent-ink"
+          >
+            <PenLine className="h-[17px] w-[17px]" strokeWidth={1.9} />
+            Add observation
+          </button>
+          <p className="mt-2 text-[12px] leading-[1.55] text-muted">
+            An observation records what you saw. It does not change the status above.
+          </p>
+
+          {observations.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-3 border-l-2 border-line pl-3">
+              {observations.map((o) => (
+                <li key={o.id}>
+                  <div className="text-[12px] font-semibold leading-[1.4] text-muted">
+                    {new Date(o.createdAt).toLocaleDateString(undefined, {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </div>
+                  <p className="mt-0.5 text-[14px] leading-[1.6] text-ink">{o.text}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {sheetOpen && (
+        <ObservationSheet
+          milestoneTitle={milestone.title[language] || milestone.title.en}
+          onSave={handleSaveObservation}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
+
+      {lastSaved && <ObservationToast onUndo={handleUndo} onDone={() => setLastSaved(null)} />}
     </article>
   );
 }

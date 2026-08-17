@@ -267,6 +267,7 @@ export default function ParentMilestoneTracker() {
                 key={milestone.id}
                 milestone={milestone}
                 status={statuses[milestone.id] || 'not_observed'}
+                childId={child?.id}
                 onStatusChange={(newStatus) => handleStatusChange(milestone.id, newStatus)}
               />
             ))

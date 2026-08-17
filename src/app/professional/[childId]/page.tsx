@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -14,6 +14,7 @@ import { MilestoneStatus, AssessmentRecord } from '@/types';
 import { Button } from '@/components/ui/Primitives';
 import DevelopmentalAgeGauge from '@/components/professional/DevelopmentalAgeGauge';
 import MilestoneAssessmentRow from '@/components/professional/MilestoneAssessmentRow';
+import AssessmentTickBar, { useBandTallies } from '@/components/professional/AssessmentTickBar';
 
 const DOMAIN_OPTIONS = [
   { value: 'all', label: 'All Domains' },
@@ -36,7 +37,6 @@ export default function ChildAssessmentWorkspace() {
 
   const ageResult = calculateChildAges(child?.dateOfBirth || '2023-01-01', child?.gestationalWeeks);
 
-  const [selectedAgeBand, setSelectedAgeBand] = useState<number>(ageResult.recommendedAgeBandMonths);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
 
   const existingAssessment = assessments.find((a) => a.childId === childId);
@@ -57,6 +57,23 @@ export default function ChildAssessmentWorkspace() {
   });
 
   const [savedAlert, setSavedAlert] = useState(false);
+
+  /*
+   * ChildContext hydrates from localStorage in an effect, so on first render
+   * `existingAssessment` is undefined and the useState initialiser above builds
+   * an empty session. Without this, reopening a child's file showed a blank
+   * record and the next save would overwrite the real one. Adopt the stored
+   * record once, the first time it arrives.
+   */
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (!hydrated.current && existingAssessment) {
+      setSessionRecord(existingAssessment);
+      hydrated.current = true;
+    }
+  }, [existingAssessment]);
+
+  const tallies = useBandTallies(ALL_MILESTONES, sessionRecord.milestoneStatuses);
 
   const snapshot = computeClinicalSnapshot(
     ageResult.effectiveAgeMonths,
@@ -90,9 +107,7 @@ export default function ChildAssessmentWorkspace() {
   }
 
   const filteredMilestones = ALL_MILESTONES.filter(
-    (m) =>
-      (selectedAgeBand === 0 || m.ageBandMonths === selectedAgeBand) &&
-      (selectedDomain === 'all' || m.domain === selectedDomain)
+    (m) => selectedDomain === 'all' || m.domain === selectedDomain
   );
 
   return (
@@ -136,79 +151,94 @@ export default function ChildAssessmentWorkspace() {
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
         <DevelopmentalAgeGauge ageResult={ageResult} snapshot={snapshot} />
 
-        {/* Filters */}
-        <section className="rounded-card border border-line-warm bg-surface-raised p-5">
-          <div className="text-[13px] font-semibold text-ink-soft">Age Band</div>
-          <div className="scroll-rail mt-2.5">
-            <FilterChip selected={selectedAgeBand === 0} onClick={() => setSelectedAgeBand(0)}>
-              All Ages
-            </FilterChip>
-            {AGE_BANDS.map((band) => (
-              <FilterChip
-                key={band.months}
-                selected={selectedAgeBand === band.months}
-                onClick={() => setSelectedAgeBand(band.months)}
-              >
-                {band.months}m
-              </FilterChip>
-            ))}
-          </div>
+        <AssessmentTickBar
+          tallies={tallies}
+          onJump={(months) =>
+            document
+              .getElementById(`band-${months}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        />
 
-          <label className="mt-4 block max-w-md">
-            <span className="mb-2 block text-[13px] font-semibold text-ink-soft">Domain</span>
-            <select
-              value={selectedDomain}
-              onChange={(e) => setSelectedDomain(e.target.value)}
-              className="focus-ring min-h-[46px] w-full rounded-xl border border-line-warm bg-surface-raised px-3.5 text-[13px] text-ink"
-            >
-              {DOMAIN_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+        {/* Domains stay visible as chips — a dropdown hid which areas exist */}
+        <section className="rounded-card border-2 border-line bg-canvas p-5">
+          <div className="text-[13px] font-semibold text-body">Domain</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {DOMAIN_OPTIONS.map((opt) => {
+              const selected = selectedDomain === opt.value;
+              const count =
+                opt.value === 'all'
+                  ? ALL_MILESTONES.length
+                  : ALL_MILESTONES.filter((m) => m.domain === opt.value).length;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSelectedDomain(opt.value)}
+                  aria-pressed={selected}
+                  className={`focus-ring sig-chip sig-press inline-flex min-h-[46px] items-center gap-2 rounded-control border-2 px-4 text-[13px] transition-colors duration-150 ease-out ${
+                    selected
+                      ? 'border-clinician bg-clinician-tint font-bold text-clinician-ink'
+                      : 'border-line font-semibold text-body hover:border-ink'
+                  }`}
+                >
                   {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
-
-        {/* Checklist */}
-        <section className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="font-sans text-sm font-semibold text-ink">
-              Checklist Items ({filteredMilestones.length} milestones)
-            </h2>
-            <span className="text-xs text-ink-muted">Click status to record observation</span>
+                  <span className="sig-num text-[11px] opacity-70">{count}</span>
+                </button>
+              );
+            })}
           </div>
-
-          {filteredMilestones.length === 0 ? (
-            <div className="rounded-card border border-line-warm bg-surface-raised px-6 py-12 text-center text-[13px] text-ink-muted">
-              No milestones found for selected age band &amp; domain filter.
-            </div>
-          ) : (
-            filteredMilestones.map((milestone) => (
-              <MilestoneAssessmentRow
-                key={milestone.id}
-                milestone={milestone}
-                status={sessionRecord.milestoneStatuses[milestone.id] || 'not_observed'}
-                clinicalNote={sessionRecord.milestoneNotes[milestone.id] || ''}
-                onStatusChange={(newStatus: MilestoneStatus) =>
-                  persist({
-                    ...sessionRecord,
-                    milestoneStatuses: {
-                      ...sessionRecord.milestoneStatuses,
-                      [milestone.id]: newStatus,
-                    },
-                  })
-                }
-                onNoteChange={(note: string) =>
-                  persist({
-                    ...sessionRecord,
-                    milestoneNotes: { ...sessionRecord.milestoneNotes, [milestone.id]: note },
-                  })
-                }
-              />
-            ))
-          )}
         </section>
+
+        {/* One always-open section per age band — nothing collapses, so the
+            whole record is scannable in one pass. */}
+        {AGE_BANDS.map((band) => {
+          const items = filteredMilestones.filter((m) => m.ageBandMonths === band.months);
+          if (items.length === 0) return null;
+          const marked = items.filter((m) => {
+            const st = sessionRecord.milestoneStatuses[m.id];
+            return st === 'observed' || st === 'reported';
+          }).length;
+
+          return (
+            <section key={band.months} id={`band-${band.months}`} className="scroll-mt-24">
+              <header className="sticky top-[58px] z-10 -mx-[18px] flex flex-wrap items-baseline justify-between gap-3 border-y-2 border-ink bg-page px-[18px] py-3 sm:-mx-6 sm:px-6 md:top-[66px] lg:-mx-9 lg:px-9">
+                <h2 className="font-display text-[17px] font-bold tracking-[-0.03em] text-ink">
+                  {band.label[language] || band.label.en}
+                </h2>
+                <span className="sig-num text-[13px] text-muted">
+                  {marked}/{items.length} marked
+                </span>
+              </header>
+
+              <div className="mt-3 flex flex-col gap-3">
+                {items.map((milestone) => (
+                  <MilestoneAssessmentRow
+                    key={milestone.id}
+                    milestone={milestone}
+                    status={sessionRecord.milestoneStatuses[milestone.id] || 'not_observed'}
+                    clinicalNote={sessionRecord.milestoneNotes[milestone.id] || ''}
+                    onStatusChange={(newStatus: MilestoneStatus) =>
+                      persist({
+                        ...sessionRecord,
+                        milestoneStatuses: {
+                          ...sessionRecord.milestoneStatuses,
+                          [milestone.id]: newStatus,
+                        },
+                      })
+                    }
+                    onNoteChange={(note: string) =>
+                      persist({
+                        ...sessionRecord,
+                        milestoneNotes: { ...sessionRecord.milestoneNotes, [milestone.id]: note },
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
         {/* Impressions */}
         <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
@@ -253,27 +283,3 @@ export default function ChildAssessmentWorkspace() {
   );
 }
 
-function FilterChip({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`focus-ring inline-flex min-h-[42px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
-        selected
-          ? 'bg-brand-600 font-semibold text-white dark:text-ink-invert'
-          : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
