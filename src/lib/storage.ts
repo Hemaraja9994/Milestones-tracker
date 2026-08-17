@@ -1,4 +1,9 @@
 import { ChildProfile, AssessmentRecord } from '@/types';
+import {
+  clearAllAshaResponses,
+  deleteAshaResponses,
+  deleteAshaResponsesFor,
+} from './ashaStorage';
 
 const CHILDREN_KEY = 'milestonepath_children_v1';
 const ASSESSMENTS_KEY = 'milestonepath_assessments_v1';
@@ -104,19 +109,60 @@ export const INITIAL_ASSESSMENTS: AssessmentRecord[] = [
   }
 ];
 
+/**
+ * A fresh install starts empty. The demo profiles in INITIAL_CHILDREN are kept
+ * only so `loadSampleChildren` can put them in on request — a clinical tool
+ * must not invent patients, and a caregiver must not be shown someone else's
+ * child.
+ */
 export function getStoredChildren(): ChildProfile[] {
-  if (typeof window === 'undefined') return INITIAL_CHILDREN;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(CHILDREN_KEY);
-    if (!raw) {
-      localStorage.setItem(CHILDREN_KEY, JSON.stringify(INITIAL_CHILDREN));
-      return INITIAL_CHILDREN;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
     console.error('Failed to load children from storage', e);
-    return INITIAL_CHILDREN;
+    return [];
   }
+}
+
+/** Put the demonstration profiles in, for someone evaluating the tool. */
+export function loadSampleChildren(): void {
+  if (typeof window === 'undefined') return;
+  const current = getStoredChildren();
+  const missing = INITIAL_CHILDREN.filter((s) => !current.some((c) => c.id === s.id));
+  if (missing.length === 0) return;
+  localStorage.setItem(CHILDREN_KEY, JSON.stringify([...current, ...missing]));
+  const assessments = getStoredAssessments();
+  const missingSessions = INITIAL_ASSESSMENTS.filter(
+    (a) => !assessments.some((x) => x.id === a.id)
+  );
+  if (missingSessions.length) {
+    localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify([...assessments, ...missingSessions]));
+  }
+}
+
+/** Remove the demonstration profiles and everything recorded against them. */
+export function removeSampleChildren(): void {
+  if (typeof window === 'undefined') return;
+  const removed = getStoredChildren().filter((c) => isSampleChild(c.id)).map((c) => c.id);
+  const children = getStoredChildren().filter((c) => !isSampleChild(c.id));
+  localStorage.setItem(CHILDREN_KEY, JSON.stringify(children));
+  const assessments = getStoredAssessments().filter((a) => !isSampleChild(a.childId));
+  localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
+  deleteAshaResponsesFor(removed);
+}
+
+/**
+ * Erase every child profile and every recorded session from this device.
+ * Irreversible — there is no server copy to restore from.
+ */
+export function clearAllStoredData(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(CHILDREN_KEY);
+  localStorage.removeItem(ASSESSMENTS_KEY);
+  clearAllAshaResponses();
 }
 
 export function saveChild(child: ChildProfile): void {
@@ -136,23 +182,21 @@ export function deleteChild(childId: string): void {
   const current = getStoredChildren().filter(c => c.id !== childId);
   localStorage.setItem(CHILDREN_KEY, JSON.stringify(current));
 
-  // Also remove assessments
+  // Also remove assessments and any ASHA checklist responses
   const assessments = getStoredAssessments().filter(a => a.childId !== childId);
   localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
+  deleteAshaResponses(childId);
 }
 
 export function getStoredAssessments(): AssessmentRecord[] {
-  if (typeof window === 'undefined') return INITIAL_ASSESSMENTS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(ASSESSMENTS_KEY);
-    if (!raw) {
-      localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(INITIAL_ASSESSMENTS));
-      return INITIAL_ASSESSMENTS;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
     console.error('Failed to load assessments from storage', e);
-    return INITIAL_ASSESSMENTS;
+    return [];
   }
 }
 

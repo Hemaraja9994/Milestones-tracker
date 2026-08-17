@@ -10,6 +10,7 @@ import { computeClinicalSnapshot } from '@/lib/calculationEngine';
 import { isSampleChild } from '@/lib/storage';
 import { ChildProfile, AssessmentRecord } from '@/types';
 import ChildProfileForm from '@/components/parent/ChildProfileForm';
+import DeviceDataPanel from '@/components/layout/DeviceDataPanel';
 import { Badge, Button, GaugeRow, Stat } from '@/components/ui/Primitives';
 
 export default function ProfessionalDashboard() {
@@ -266,6 +267,8 @@ export default function ProfessionalDashboard() {
               </Link>
             </div>
           </section>
+
+          <DeviceDataPanel />
 
           {/* HRR moved out of the top bar — reached from the portal it belongs to. */}
           <Link

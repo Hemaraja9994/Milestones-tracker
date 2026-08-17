@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Lock, AlertTriangle, FileText, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/Primitives';
+import DeviceDataPanel from '@/components/layout/DeviceDataPanel';
 
 export default function PrivacyTermsPage() {
   return (
@@ -24,6 +25,8 @@ export default function PrivacyTermsPage() {
           Last Updated: February 2025 • MilestonePath Clinical Advisory
         </p>
       </div>
+
+      <DeviceDataPanel />
 
       {/* Prominent Clinical Disclaimer */}
       <Card className="border-amber-300 bg-amber-50/50 p-6 dark:border-amber-900/60 dark:bg-amber-950/20 space-y-3">
