@@ -7,7 +7,10 @@ import {
   saveChild as persistChild, 
   deleteChild as removeChild, 
   getStoredAssessments, 
-  saveAssessment as persistAssessment 
+  saveAssessment as persistAssessment,
+  removeSampleChildren as purgeSamples,
+  clearAllStoredData,
+  loadSampleChildren,
 } from '@/lib/storage';
 
 interface ChildContextValue {
@@ -25,6 +28,9 @@ interface ChildContextValue {
   activeRole: UserRole;
   setActiveRole: (role: UserRole) => void;
   refreshData: () => void;
+  removeSamples: () => void;
+  loadSamples: () => void;
+  clearAllData: () => void;
 }
 
 const ChildContext = createContext<ChildContextValue | undefined>(undefined);
@@ -100,6 +106,25 @@ export function ChildProvider({ children }: { children: React.ReactNode }) {
     setAssessments(getStoredAssessments());
   };
 
+  const removeSamples = () => {
+    purgeSamples();
+    setActiveChild(null);
+    refreshData();
+  };
+
+  const loadSamples = () => {
+    loadSampleChildren();
+    refreshData();
+  };
+
+  const clearAllData = () => {
+    clearAllStoredData();
+    setActiveChild(null);
+    setActiveAssessment(null);
+    setChildrenList([]);
+    setAssessments([]);
+  };
+
   return (
     <ChildContext.Provider
       value={{
@@ -117,6 +142,9 @@ export function ChildProvider({ children }: { children: React.ReactNode }) {
         activeRole,
         setActiveRole,
         refreshData,
+        removeSamples,
+        loadSamples,
+        clearAllData,
       }}
     >
       {children}
