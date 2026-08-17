@@ -12,10 +12,13 @@ export default function BrandMark({
   size = 28,
   className,
   title,
+  onInk = false,
 }: {
   size?: number;
   className?: string;
   title?: string;
+  /** Sitting on the ink top bar, where the normal teal is too dark to read. */
+  onInk?: boolean;
 }) {
   const strokeWidth = size <= 20 ? 4.2 : 3.6;
 
@@ -32,7 +35,7 @@ export default function BrandMark({
       {title ? <title>{title}</title> : null}
       <path
         d="M5 30h6v-8h6v-8h6"
-        className="stroke-brand-600 dark:stroke-brand-400"
+        className={onInk ? 'stroke-canvas' : 'stroke-clinician'}
         strokeWidth={strokeWidth}
         fill="none"
         strokeLinecap="round"
@@ -40,14 +43,14 @@ export default function BrandMark({
       />
       <path
         d="M27 9a13 13 0 0 1 0 22"
-        className="stroke-brand-500 dark:stroke-brand-500"
+        className={onInk ? 'stroke-clinician-dim' : 'stroke-clinician-ink'}
         strokeWidth={strokeWidth - 0.4}
         fill="none"
         strokeLinecap="round"
       />
       <path
         d="M27 16a7 7 0 0 1 0 8"
-        className="stroke-parent-600"
+        className="stroke-parent"
         strokeWidth={strokeWidth - 0.4}
         fill="none"
         strokeLinecap="round"

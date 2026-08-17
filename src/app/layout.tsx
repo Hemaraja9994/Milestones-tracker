@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { ChildProvider } from '@/context/ChildContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import BottomNav from '@/components/layout/BottomNav';
 import LanguageShell from '@/components/layout/LanguageShell';
 
 /* Space Grotesk carries every heading and numeral; IBM Plex Sans carries all
@@ -84,8 +85,9 @@ export default function RootLayout({
             <ChildProvider>
               <LanguageShell />
               <Navbar />
-              <main className="flex-1 w-full">{children}</main>
+              <main className="w-full flex-1 pb-[76px] md:pb-0">{children}</main>
               <Footer />
+              <BottomNav />
             </ChildProvider>
           </LanguageProvider>
         </ThemeProvider>
