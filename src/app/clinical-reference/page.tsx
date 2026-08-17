@@ -75,7 +75,7 @@ export default function ClinicalReferencePage() {
           <Link
             key={mod.href}
             href={mod.href}
-            className="focus-ring flex flex-col gap-2.5 bg-surface-raised p-6 transition-colors hover:bg-surface-tint"
+            className="sig-lift focus-ring flex flex-col gap-2.5 rounded-card border-2 border-line bg-canvas p-6"
           >
             <h2 className="font-sans text-base font-semibold leading-[1.3] text-ink">{mod.title}</h2>
             <p className="text-[13px] leading-[1.6] text-ink-muted">{mod.body}</p>

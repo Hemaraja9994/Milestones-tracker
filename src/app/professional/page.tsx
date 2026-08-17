@@ -178,7 +178,7 @@ export default function ProfessionalDashboard() {
                       <Link
                         href={`/professional/${child.id}`}
                         onClick={() => setActiveChild(child)}
-                        className="focus-ring inline-flex min-h-[40px] items-center rounded-full border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+                        className="focus-ring sig-press inline-flex min-h-[40px] items-center rounded-control border-2 border-line px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
                       >
                         {t.professional.view_profile}
                       </Link>
@@ -273,7 +273,7 @@ export default function ProfessionalDashboard() {
           {/* HRR moved out of the top bar — reached from the portal it belongs to. */}
           <Link
             href="/high-risk-register"
-            className="focus-ring flex items-center justify-between gap-4 rounded-card border border-line-warm border-t-4 border-t-risk bg-surface-raised p-5 transition-colors hover:bg-surface-tint sm:p-6"
+            className="sig-lift focus-ring flex items-center justify-between gap-4 rounded-card border-2 border-risk bg-risk-tint p-5 sm:p-6"
           >
             <span className="flex items-start gap-3.5">
               <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-risk" strokeWidth={1.8} />
