@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
@@ -16,6 +16,7 @@ import FirstRunPanel from '@/components/parent/FirstRunPanel';
 import MilestoneArt from '@/components/parent/MilestoneArt';
 import MilestoneJourney from '@/components/parent/MilestoneJourney';
 import TrackerHeader from '@/components/parent/TrackerHeader';
+import CelebrateProgress from '@/components/parent/CelebrateProgress';
 import { Badge, NotePanel } from '@/components/ui/Primitives';
 
 const DOMAIN_FILTERS: { value: string; label: string }[] = [
@@ -79,6 +80,21 @@ export default function ParentMilestoneTracker() {
   const [statuses, setStatuses] = useState<Record<string, MilestoneStatus>>(
     existingAssessment?.milestoneStatuses || {}
   );
+
+  /*
+   * Same trap as the clinician workspace: ChildContext hydrates from
+   * localStorage in an effect, so this useState initialiser runs while
+   * `assessments` is still empty and starts the parent at zero. The next tick
+   * would then save that empty map over a real record. Adopt the stored
+   * statuses once, the first time they arrive.
+   */
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (!hydrated.current && existingAssessment) {
+      setStatuses(existingAssessment.milestoneStatuses || {});
+      hydrated.current = true;
+    }
+  }, [existingAssessment]);
 
   const handleStatusChange = (milestoneId: string, newStatus: MilestoneStatus) => {
     const updatedStatuses = { ...statuses, [milestoneId]: newStatus };
@@ -168,6 +184,21 @@ export default function ParentMilestoneTracker() {
             </Link>
           </NotePanel>
         )}
+        <CelebrateProgress statuses={statuses} selectedMonths={selectedAgeBand} />
+
+        <Link
+          href="/parent/activities"
+          className="focus-ring sig-press sig-lift flex items-center justify-between gap-4 rounded-card border-2 border-parent bg-parent-tint p-5"
+        >
+          <span>
+            <span className="eyebrow block text-parent-ink">Try at home</span>
+            <span className="mt-1.5 block font-display text-[17px] font-bold tracking-[-0.03em] text-ink">
+              One simple thing to try for every milestone
+            </span>
+          </span>
+          <ArrowRight className="h-5 w-5 shrink-0 text-parent-ink" strokeWidth={2.2} />
+        </Link>
+
         <MilestoneTickTracker statuses={statuses} />
 
         {/* The map is the selector: stops carry their own progress, so the
