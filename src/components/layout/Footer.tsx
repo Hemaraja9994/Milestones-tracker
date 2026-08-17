@@ -17,6 +17,11 @@ export default function Footer() {
     { href: '/sources', label: 'Sources & Citations' },
   ];
 
+  const guideLinks = [
+    { href: '/manual/parent', label: 'Parent guide (printable)' },
+    { href: '/manual/clinician', label: 'Clinician manual (printable)' },
+  ];
+
   const workspaceLinks = [
     { href: '/professional', label: 'Clinician Portal (SLP & Pediatric)' },
     { href: '/parent', label: 'Parent / Caregiver Tracker' },
@@ -56,7 +61,7 @@ export default function Footer() {
           </div>
 
           <FooterColumn title="Clinical Reference" links={clinicalLinks} />
-          <FooterColumn title="Workspaces" links={workspaceLinks} />
+          <FooterColumn title="Workspaces" links={[...workspaceLinks, ...guideLinks]} />
         </div>
 
         <Attribution />
