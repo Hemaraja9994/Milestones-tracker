@@ -8,10 +8,14 @@ import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
-import { MilestoneStatus, AssessmentRecord } from '@/types';
+import { isSampleChild } from '@/lib/storage';
+import { ChildProfile, MilestoneStatus, AssessmentRecord } from '@/types';
 import ParentMilestoneCard from '@/components/parent/ParentMilestoneCard';
 import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
-import { NotePanel } from '@/components/ui/Primitives';
+import FirstRunPanel from '@/components/parent/FirstRunPanel';
+import MilestoneArt from '@/components/parent/MilestoneArt';
+import MilestoneJourney from '@/components/parent/MilestoneJourney';
+import { Badge, NotePanel } from '@/components/ui/Primitives';
 
 const DOMAIN_FILTERS: { value: string; label: string }[] = [
   { value: 'all', label: 'All Skills' },
@@ -19,13 +23,35 @@ const DOMAIN_FILTERS: { value: string; label: string }[] = [
   { value: 'language_expressive', label: 'Talking & Gestures (Expressive)' },
   { value: 'auditory_hearing', label: 'Hearing & Listening (Auditory)' },
   { value: 'social_pragmatic', label: 'Social & Play' },
+  { value: 'speech_articulation', label: 'Speech Sounds' },
+  { value: 'cognitive', label: 'Thinking & Problem Solving' },
 ];
 
 export default function ParentMilestoneTracker() {
-  const { childrenList, activeChild, assessments, saveCurrentAssessment } = useChild();
+  const { childrenList, activeChild, setActiveChild, createOrUpdateChild, assessments, saveCurrentAssessment } =
+    useChild();
   const { language, t } = useLanguage();
 
-  const child = activeChild || childrenList[0];
+  const [browsingSample, setBrowsingSample] = useState(false);
+
+  const ownChildren = childrenList.filter((c) => !isSampleChild(c.id));
+  const sampleChildren = childrenList.filter((c) => isSampleChild(c.id));
+
+  /* A tick is only persisted when there is a child to attach it to, so never
+     show the checklist without one — otherwise a parent ticks milestones that
+     silently go nowhere. */
+  const child =
+    (activeChild && (!isSampleChild(activeChild.id) || browsingSample) ? activeChild : null) ||
+    ownChildren[0] ||
+    (browsingSample ? childrenList[0] : null);
+
+  const needsFirstRun = !child;
+
+  const handleCreate = (newChild: ChildProfile) => {
+    createOrUpdateChild(newChild);
+    setActiveChild(newChild);
+    setBrowsingSample(false);
+  };
 
   const ageResult = child
     ? calculateChildAges(child.dateOfBirth, child.gestationalWeeks)
@@ -40,6 +66,11 @@ export default function ParentMilestoneTracker() {
 
   const [selectedAgeBand, setSelectedAgeBand] = useState<number>(ageResult.recommendedAgeBandMonths);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
+
+  // A newly added child changes the recommended band; follow it.
+  React.useEffect(() => {
+    setSelectedAgeBand(ageResult.recommendedAgeBandMonths);
+  }, [child?.id, ageResult.recommendedAgeBandMonths]);
 
   const existingAssessment = assessments.find((a) => a.childId === child?.id);
   const [statuses, setStatuses] = useState<Record<string, MilestoneStatus>>(
@@ -133,38 +164,49 @@ export default function ParentMilestoneTracker() {
       </div>
 
       <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
+        {needsFirstRun ? (
+          <FirstRunPanel
+            onCreate={handleCreate}
+            sampleCount={sampleChildren.length}
+            onBrowseSample={
+              sampleChildren.length
+                ? () => {
+                    setActiveChild(sampleChildren[0]);
+                    setBrowsingSample(true);
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <>
+        {child && isSampleChild(child.id) && (
+          <NotePanel tone="emerging" className="flex flex-wrap items-center gap-3">
+            <Badge variant="warning">Sample profile</Badge>
+            <span className="flex-1">
+              You are viewing <strong>{child.nameOrInitials}</strong>, a demonstration profile.
+              Anything you tick here is not your child&apos;s record.
+            </span>
+            <Link href="/parent" className="focus-ring font-semibold text-parent-700 underline">
+              Start with my own child
+            </Link>
+          </NotePanel>
+        )}
         <MilestoneTickTracker statuses={statuses} />
 
-        {/* Age band selector sits under the tracker: the rail shows the whole
-            journey, the chips pick the band you are ticking today. */}
-        <section className="rounded-card border border-line-warm bg-surface-raised p-5 sm:p-6">
-          <div className="text-[13px] font-semibold text-ink-soft">{t.parent.choose_age}</div>
-          <div className="scroll-rail mt-3 sm:flex-wrap sm:overflow-visible">
-            {AGE_BANDS.map((b) => {
-              const selected = selectedAgeBand === b.months;
-              return (
-                <button
-                  key={b.months}
-                  type="button"
-                  onClick={() => setSelectedAgeBand(b.months)}
-                  aria-pressed={selected}
-                  className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-[18px] text-sm transition-colors ${
-                    selected
-                      ? 'bg-parent-600 font-semibold text-white dark:text-ink-invert'
-                      : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
-                  }`}
-                >
-                  {b.label[language] || b.label.en}
-                </button>
-              );
-            })}
-          </div>
-          {band && (
-            <p className="mt-3.5 text-xs text-ink-warm">
-              {band.rangeDescription[language] || band.rangeDescription.en}
-            </p>
-          )}
-        </section>
+        {/* The map is the selector: stops carry their own progress, so the
+            parent sees where they are in the whole 0-6 journey. */}
+        <MilestoneJourney
+          statuses={statuses}
+          selectedAgeBand={selectedAgeBand}
+          onSelect={setSelectedAgeBand}
+        />
+
+        {band && (
+          <p className="-mt-1 px-1 text-xs text-ink-warm">
+            Showing <strong className="font-semibold text-ink-body">{band.label[language] || band.label.en}</strong>{' '}
+            · {band.rangeDescription[language] || band.rangeDescription.en}
+          </p>
+        )}
 
         {/* Band tallies — a raw count always sits beside the bar */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -200,12 +242,13 @@ export default function ParentMilestoneTracker() {
                 type="button"
                 onClick={() => setSelectedDomain(filter.value)}
                 aria-pressed={selected}
-                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center rounded-full px-4 text-[13px] transition-colors ${
+                className={`focus-ring inline-flex min-h-[46px] shrink-0 items-center gap-2 rounded-full pl-3 pr-4 text-[13px] transition-colors ${
                   selected
                     ? 'bg-ink font-semibold text-surface-raised'
                     : 'border border-line-warm bg-surface-raised font-medium text-ink-body hover:text-ink'
                 }`}
               >
+                {filter.value !== 'all' && <MilestoneArt name={filter.value} size={24} />}
                 {filter.label}
               </button>
             );
@@ -242,6 +285,8 @@ export default function ParentMilestoneTracker() {
           >
             {t.parent.share_with_doctor}
           </Link>
+        )}
+          </>
         )}
       </div>
     </div>

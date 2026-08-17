@@ -22,6 +22,7 @@ const DOMAIN_OPTIONS = [
   { value: 'language_expressive', label: 'Expressive Language (Speaking)' },
   { value: 'speech_articulation', label: 'Speech & Articulation (Crowe & McLeod)' },
   { value: 'social_pragmatic', label: 'Social & Pragmatic' },
+  { value: 'cognitive', label: 'Cognitive Development' },
 ];
 
 export default function ChildAssessmentWorkspace() {

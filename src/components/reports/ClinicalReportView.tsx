@@ -21,6 +21,7 @@ import { ALL_MILESTONES } from '@/data/allMilestones';
 import { Button, Badge } from '@/components/ui/Primitives';
 import { useLanguage } from '@/context/LanguageContext';
 import BrandMark from '@/components/ui/BrandMark';
+import { AttributionLine } from '@/components/layout/Attribution';
 
 interface ClinicalReportViewProps {
   child: ChildProfile;
@@ -277,6 +278,7 @@ export default function ClinicalReportView({ child, assessment }: ClinicalReport
         <div className="border-t border-slate-200 dark:border-slate-800 pt-4 text-[10px] text-slate-400 leading-relaxed">
           <p className="font-semibold text-slate-500 dark:text-slate-400">DISCLAIMER:</p>
           <p>{t.app.disclaimer_long}</p>
+          <AttributionLine className="mt-3" />
         </div>
 
       </div>
