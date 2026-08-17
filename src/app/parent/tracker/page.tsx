@@ -15,6 +15,7 @@ import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
 import FirstRunPanel from '@/components/parent/FirstRunPanel';
 import MilestoneArt from '@/components/parent/MilestoneArt';
 import MilestoneJourney from '@/components/parent/MilestoneJourney';
+import TrackerHeader from '@/components/parent/TrackerHeader';
 import { Badge, NotePanel } from '@/components/ui/Primitives';
 
 const DOMAIN_FILTERS: { value: string; label: string }[] = [
@@ -33,6 +34,8 @@ export default function ParentMilestoneTracker() {
   const { language, t } = useLanguage();
 
   const [browsingSample, setBrowsingSample] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  React.useEffect(() => setMounted(true), []);
 
   const ownChildren = childrenList.filter((c) => !isSampleChild(c.id));
   const sampleChildren = childrenList.filter((c) => isSampleChild(c.id));
@@ -125,43 +128,17 @@ export default function ParentMilestoneTracker() {
 
   return (
     <div className="bg-surface-canvas">
-      {/* ================= Header ================= */}
-      <div className="border-b border-line-rule bg-surface-raised">
-        <div className="mx-auto max-w-[1240px] px-[18px] pb-6 pt-8 sm:px-6 lg:px-9">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <Link
-                href="/parent"
-                aria-label={t.common.back}
-                className="focus-ring mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-warm text-ink-body"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-              <div>
-                <div className="eyebrow tracking-[0.1em] text-parent-600">{t.parent.welcome}</div>
-                <h1 className="mt-2.5 font-display text-[30px] font-extrabold leading-[1.1] text-ink sm:text-[38px]">
-                  {t.parent.tracker_title}
-                </h1>
-                {child && (
-                  <p className="mt-2 text-[13px] text-ink-muted">
-                    Tracking {child.nameOrInitials} ·{' '}
-                    {ageResult.chronologicalText[language] || ageResult.chronologicalText.en}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {child && (
-              <Link
-                href={`/professional/${child.id}/report`}
-                className="focus-ring inline-flex min-h-[46px] items-center rounded-full border border-line-warm px-4 text-[13px] font-semibold text-ink-body"
-              >
-                {t.parent.share_with_doctor}
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+      {child && (
+        <TrackerHeader
+          childName={child.nameOrInitials}
+          ageText={`${ageResult.chronologicalText[language] || ageResult.chronologicalText.en}${
+            ageResult.isPremature ? ' · corrected age applied' : ''
+          }`}
+          statuses={statuses}
+          selectedMonths={selectedAgeBand}
+          onSelectBand={setSelectedAgeBand}
+        />
+      )}
 
       <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
         {needsFirstRun ? (
@@ -262,11 +239,14 @@ export default function ParentMilestoneTracker() {
               No milestones found for this age and domain filter. Choose another age or filter!
             </div>
           ) : (
-            milestonesInBand.map((milestone) => (
+            milestonesInBand.map((milestone, i) => (
               <ParentMilestoneCard
                 key={milestone.id}
                 milestone={milestone}
+                index={i}
+                entering={mounted}
                 status={statuses[milestone.id] || 'not_observed'}
+                childId={child?.id}
                 onStatusChange={(newStatus) => handleStatusChange(milestone.id, newStatus)}
               />
             ))

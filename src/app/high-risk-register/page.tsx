@@ -29,7 +29,7 @@ export default function HighRiskRegisterHub() {
         {/* Category overview — sage for every icon-less tile, copy differentiates */}
         <div className="grid gap-px overflow-hidden rounded-card border border-line-warm bg-line-warm sm:grid-cols-2 lg:grid-cols-3">
           {HRR_CATEGORIES.map((cat) => (
-            <div key={cat.id} className="flex flex-col gap-2.5 bg-surface-raised p-6">
+            <div key={cat.id} className="sig-lift flex flex-col gap-2.5 border-2 border-line bg-canvas p-6">
               <span className="eyebrow font-sans text-brand-600 dark:text-brand-400">
                 {HIGH_RISK_REGISTER_ITEMS.filter((i) => i.category === cat.id).length} factors
               </span>
@@ -99,7 +99,7 @@ export default function HighRiskRegisterHub() {
                       <Link
                         href={`/high-risk-register/${child.id}`}
                         onClick={() => setActiveChild(child)}
-                        className="focus-ring inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-line-warm px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
+                        className="focus-ring sig-press inline-flex min-h-[40px] items-center gap-1.5 rounded-control border-2 border-line px-3.5 text-[13px] font-semibold text-brand-600 transition-colors hover:bg-surface-canvas dark:text-brand-400"
                       >
                         {t.hrr.start_screening}
                         <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.2} />

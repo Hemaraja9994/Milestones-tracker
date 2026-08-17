@@ -7,6 +7,21 @@ import {
 
 const CHILDREN_KEY = 'milestonepath_children_v1';
 const ASSESSMENTS_KEY = 'milestonepath_assessments_v1';
+const OBSERVATIONS_KEY = 'milestonepath_observations_v1';
+
+/**
+ * A parent's note of what they actually saw, e.g. "said 'appa' twice at
+ * dinner". Deliberately separate from milestoneStatuses: writing an
+ * observation never writes a status, so a milestone with observations and no
+ * status still reads "Not yet seen".
+ */
+export interface Observation {
+  id: string;
+  childId: string;
+  milestoneId: string;
+  text: string;
+  createdAt: string;
+}
 
 /**
  * The seeded profiles below are demonstration data, not the user's own child.
@@ -152,6 +167,7 @@ export function removeSampleChildren(): void {
   const assessments = getStoredAssessments().filter((a) => !isSampleChild(a.childId));
   localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
   deleteAshaResponsesFor(removed);
+  deleteObservationsFor(removed);
 }
 
 /**
@@ -162,7 +178,52 @@ export function clearAllStoredData(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(CHILDREN_KEY);
   localStorage.removeItem(ASSESSMENTS_KEY);
+  localStorage.removeItem(OBSERVATIONS_KEY);
   clearAllAshaResponses();
+}
+
+/* ---------------------------------------------------------------- observations */
+
+export function getStoredObservations(): Observation[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(OBSERVATIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to load observations from storage', e);
+    return [];
+  }
+}
+
+/** Newest first — the timeline and the milestone card both read in that order. */
+export function getObservationsFor(childId: string, milestoneId?: string): Observation[] {
+  return getStoredObservations()
+    .filter((o) => o.childId === childId && (!milestoneId || o.milestoneId === milestoneId))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function saveObservation(o: Omit<Observation, 'id' | 'createdAt'>): Observation {
+  const record: Observation = {
+    ...o,
+    id: `obs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+  };
+  const all = getStoredObservations();
+  localStorage.setItem(OBSERVATIONS_KEY, JSON.stringify([...all, record]));
+  return record;
+}
+
+/** Backs the Undo on the save toast. */
+export function deleteObservation(id: string): void {
+  if (typeof window === 'undefined') return;
+  const all = getStoredObservations().filter((o) => o.id !== id);
+  localStorage.setItem(OBSERVATIONS_KEY, JSON.stringify(all));
+}
+
+function deleteObservationsFor(childIds: string[]): void {
+  if (typeof window === 'undefined') return;
+  const all = getStoredObservations().filter((o) => !childIds.includes(o.childId));
+  localStorage.setItem(OBSERVATIONS_KEY, JSON.stringify(all));
 }
 
 export function saveChild(child: ChildProfile): void {
@@ -186,6 +247,7 @@ export function deleteChild(childId: string): void {
   const assessments = getStoredAssessments().filter(a => a.childId !== childId);
   localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
   deleteAshaResponses(childId);
+  deleteObservationsFor([childId]);
 }
 
 export function getStoredAssessments(): AssessmentRecord[] {

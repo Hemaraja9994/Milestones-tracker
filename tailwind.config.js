@@ -1,19 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 
 /*
- * MilestonePath design system — "Warm Playroom Clinic" (direction 2b).
+ * MilestonePath — "Signal".
  *
- * Two layers live here:
+ * Two deliberate differences from code/tailwind.config.js in the handoff bundle:
  *
- * 1. Semantic tokens (`surface`, `ink`, `line`, `brand`, `parent`, `achieved`,
- *    `emerging`, `risk`) resolve through CSS custom properties declared in
- *    globals.css, so a single `.dark` class flips the whole palette.
- *
- * 2. The legacy Tailwind ramps the app already uses (`slate`, `rose`, `amber`,
- *    `emerald`, `sky`, `indigo`, `purple`, `teal`) are re-tuned onto the warm
- *    cream palette. Nothing in the app has to change hue-by-hue for the
- *    reference pages to sit on the same ground as the redesigned screens.
+ * 1. Colours resolve through CSS custom properties rather than literal hex, so
+ *    the `.dark` class can flip the whole palette. The bundle ships static hex,
+ *    which would have left dark mode half-applied — the app already had a
+ *    working dark mode and this keeps it.
+ * 2. A `legacy` alias block maps the previous scale onto Signal values. The
+ *    bundle's header comment says aliases are kept "so nothing breaks
+ *    mid-migration" but the block was not in the file; without it every screen
+ *    breaks at once. Delete the block once `grep` finds no references.
  */
+
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 module.exports = {
   darkMode: 'class',
   content: [
@@ -24,297 +27,161 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        /* ---------- Semantic tokens (theme-aware) ---------- */
-        surface: {
-          canvas: 'rgb(var(--surface-canvas) / <alpha-value>)',
-          raised: 'rgb(var(--surface-raised) / <alpha-value>)',
-          sunken: 'rgb(var(--surface-sunken) / <alpha-value>)',
-          tint: 'rgb(var(--surface-tint) / <alpha-value>)',
-        },
+        /* ---------- Signal tokens ---------- */
         ink: {
-          DEFAULT: 'rgb(var(--ink) / <alpha-value>)',
-          body: 'rgb(var(--ink-body) / <alpha-value>)',
-          muted: 'rgb(var(--ink-muted) / <alpha-value>)',
-          soft: 'rgb(var(--ink-soft) / <alpha-value>)',
-          warm: 'rgb(var(--ink-warm) / <alpha-value>)',
-          invert: 'rgb(var(--ink-invert) / <alpha-value>)',
+          DEFAULT: token('ink'),
+          soft: token('ink-soft'),
         },
+        canvas: token('canvas'),
+        page: token('page'),
         line: {
-          warm: 'rgb(var(--line-warm) / <alpha-value>)',
-          strong: 'rgb(var(--line-strong) / <alpha-value>)',
-          hair: 'rgb(var(--line-hair) / <alpha-value>)',
-          rule: 'rgb(var(--line-rule) / <alpha-value>)',
+          DEFAULT: token('line'),
+          soft: token('line-soft'),
+        },
+        body: token('body'),
+        muted: {
+          DEFAULT: token('muted'),
+          nav: token('muted-nav'),
+        },
+
+        /* pathway — teal is clinician, coral is parent. Never swapped, never status. */
+        clinician: {
+          DEFAULT: token('clinician'),
+          tint: token('clinician-tint'),
+          ink: token('clinician-ink'),
+          dim: token('clinician-dim'),
+          soft: token('clinician-soft'),
         },
         parent: {
-          600: 'rgb(var(--parent-600) / <alpha-value>)',
-          700: 'rgb(var(--parent-700) / <alpha-value>)',
-          tint: 'rgb(var(--parent-tint) / <alpha-value>)',
+          DEFAULT: token('parent'), // FILL ONLY — labels on coral are ink
+          tint: token('parent-tint'),
+          ink: token('parent-ink'),
+          deep: token('parent-deep'),
         },
+
+        /* status — reserved. Never decorative, never a pathway. */
         achieved: {
-          DEFAULT: 'rgb(var(--achieved) / <alpha-value>)',
-          tint: 'rgb(var(--achieved-tint) / <alpha-value>)',
-          ink: 'rgb(var(--achieved-ink) / <alpha-value>)',
+          DEFAULT: token('achieved'),
+          tint: token('achieved-tint'),
+          ink: token('achieved-ink'),
         },
         emerging: {
-          DEFAULT: 'rgb(var(--emerging) / <alpha-value>)',
-          tint: 'rgb(var(--emerging-tint) / <alpha-value>)',
-          ink: 'rgb(var(--emerging-ink) / <alpha-value>)',
+          DEFAULT: token('emerging'),
+          tint: token('emerging-tint'),
+          ink: token('emerging-ink'),
         },
         risk: {
-          DEFAULT: 'rgb(var(--risk) / <alpha-value>)',
-          tint: 'rgb(var(--risk-tint) / <alpha-value>)',
-          ink: 'rgb(var(--risk-ink) / <alpha-value>)',
+          DEFAULT: token('risk'),
+          tint: token('risk-tint'),
+          ink: token('risk-ink'),
         },
 
-        /* ---------- Brand sage (clinician pathway) ---------- */
+        /* ---------- legacy aliases · DELETE once nothing references them ----------
+           Maps the previous "Warm Playroom Clinic" scale onto Signal values so the
+           app stays shippable at every commit during the migration. */
+        surface: {
+          canvas: token('page'),
+          raised: token('canvas'),
+          sunken: token('page'),
+          tint: token('canvas'),
+        },
         brand: {
-          50: '#F4F8F1',
-          100: '#E8F0E3',
-          200: '#D2E2CA',
-          300: '#B7CDA8',
-          400: '#8FBF97',
-          500: '#7FA98A',
-          600: '#4F7A5B',
-          700: '#43684D',
-          800: '#395641',
-          900: '#2F4A38',
-          950: '#1B2A20',
+          50: token('clinician-tint'),
+          100: token('clinician-tint'),
+          200: token('clinician-soft'),
+          300: token('clinician-dim'),
+          400: token('clinician-dim'),
+          500: token('clinician'),
+          600: token('clinician'),
+          700: token('clinician-ink'),
+          800: token('clinician-ink'),
+          900: token('ink'),
+          950: token('ink'),
         },
         teal: {
-          50: '#F4F8F1',
-          100: '#E8F0E3',
-          200: '#D2E2CA',
-          300: '#B7CDA8',
-          400: '#8FBF97',
-          500: '#7FA98A',
-          600: '#4F7A5B',
-          700: '#43684D',
-          800: '#395641',
-          900: '#2F4A38',
-          950: '#1B2A20',
+          100: token('clinician-tint'),
+          400: token('clinician-dim'),
+          600: token('clinician'),
+          700: token('clinician-ink'),
+          900: token('ink'),
         },
-
-        /* ---------- Warm cream neutral ramp replacing cold slate ---------- */
         slate: {
-          50: '#FFFCF3',
-          100: '#F3EDE4',
-          200: '#F2E4C9',
-          300: '#E8D9BC',
-          400: '#A69A7C',
-          500: '#7D7053',
-          600: '#6E7A66',
-          700: '#4F5A48',
-          800: '#2C2D23',
-          900: '#2F4A38',
-          950: '#191A14',
+          50: token('canvas'),
+          100: token('page'),
+          200: token('line'),
+          300: token('line-soft'),
+          400: token('muted-nav'),
+          500: token('muted'),
+          600: token('muted'),
+          700: token('body'),
+          800: token('ink-soft'),
+          900: token('ink'),
+          950: token('ink'),
         },
         clinical: {
-          50: '#FFFCF3',
-          100: '#F3EDE4',
-          200: '#F2E4C9',
-          300: '#E8D9BC',
-          400: '#A69A7C',
-          500: '#7D7053',
-          600: '#6E7A66',
-          700: '#4F5A48',
-          800: '#2C2D23',
-          900: '#2F4A38',
-          950: '#191A14',
+          50: token('canvas'),
+          100: token('page'),
+          200: token('line'),
+          300: token('line-soft'),
+          400: token('muted-nav'),
+          500: token('muted'),
+          600: token('muted'),
+          700: token('body'),
+          800: token('ink-soft'),
+          900: token('ink'),
+          950: token('ink'),
         },
-
-        /* ---------- Status hues: reserved, never decorative ---------- */
-        emerald: {
-          50: '#F1F5E9',
-          100: '#DFE8CF',
-          200: '#C6DFCE',
-          300: '#93C4A9',
-          400: '#6FAF7A',
-          500: '#3E8F66',
-          600: '#2F7D5A',
-          700: '#26654A',
-          800: '#1F513C',
-          900: '#43533A',
-          950: '#22301F',
-        },
-        green: {
-          50: '#F1F5E9',
-          100: '#DFE8CF',
-          200: '#C6DFCE',
-          300: '#93C4A9',
-          400: '#6FAF7A',
-          500: '#3E8F66',
-          600: '#2F7D5A',
-          700: '#26654A',
-          800: '#1F513C',
-          900: '#43533A',
-          950: '#22301F',
-        },
-        amber: {
-          50: '#FDF8EE',
-          100: '#FBF1DD',
-          200: '#F3E0B8',
-          300: '#E6C88A',
-          400: '#D9A257',
-          500: '#C88B39',
-          600: '#B9762A',
-          700: '#8A6420',
-          800: '#6E4F1C',
-          900: '#5A411A',
-          950: '#33281A',
-        },
-        rose: {
-          50: '#FDF2F1',
-          100: '#F9E9E7',
-          200: '#F2D2CE',
-          300: '#EBA79E',
-          400: '#E0776C',
-          500: '#C85B4F',
-          600: '#B4453C',
-          700: '#963830',
-          800: '#762D27',
-          900: '#5E2521',
-          950: '#38201E',
-        },
-        red: {
-          50: '#FDF2F1',
-          100: '#F9E9E7',
-          200: '#F2D2CE',
-          300: '#EBA79E',
-          400: '#E0776C',
-          500: '#C85B4F',
-          600: '#B4453C',
-          700: '#963830',
-          800: '#762D27',
-          900: '#5E2521',
-          950: '#38201E',
-        },
-
-        /* ---------- Marigold (parent pathway) ---------- */
-        orange: {
-          50: '#FFF8EE',
-          100: '#FDF0DC',
-          200: '#F8DCB4',
-          300: '#EFBF83',
-          400: '#D98A63',
-          500: '#DE9138',
-          600: '#D9832A',
-          700: '#96601B',
-          800: '#7A4F17',
-          900: '#5C4A2E',
-          950: '#3A2B22',
-        },
-        pink: {
-          50: '#FFF8EE',
-          100: '#FDF0DC',
-          200: '#F8DCB4',
-          300: '#EFBF83',
-          400: '#D98A63',
-          500: '#DE9138',
-          600: '#D9832A',
-          700: '#96601B',
-          800: '#7A4F17',
-          900: '#5C4A2E',
-          950: '#3A2B22',
-        },
-
-        /* ---------- Desaturated secondaries for reference material ---------- */
-        sky: {
-          50: '#F1F5F5',
-          100: '#DFE9EA',
-          200: '#BFD2D5',
-          300: '#94B2B7',
-          400: '#6C9099',
-          500: '#547A83',
-          600: '#446670',
-          700: '#39535B',
-          800: '#31454B',
-          900: '#2A3A3E',
-          950: '#171F21',
-        },
-        blue: {
-          50: '#F1F5F5',
-          100: '#DFE9EA',
-          200: '#BFD2D5',
-          300: '#94B2B7',
-          400: '#6C9099',
-          500: '#547A83',
-          600: '#446670',
-          700: '#39535B',
-          800: '#31454B',
-          900: '#2A3A3E',
-          950: '#171F21',
-        },
-        indigo: {
-          50: '#F4F3F7',
-          100: '#E7E5EF',
-          200: '#CFCCDE',
-          300: '#AEA9C5',
-          400: '#8D87A9',
-          500: '#756E92',
-          600: '#615A7C',
-          700: '#514B65',
-          800: '#443F53',
-          900: '#3A3646',
-          950: '#201E27',
-        },
-        purple: {
-          50: '#F8F2F4',
-          100: '#F0E4E8',
-          200: '#DFC9D1',
-          300: '#C6A2B0',
-          400: '#AC7C8E',
-          500: '#946274',
-          600: '#7C505F',
-          700: '#66414E',
-          800: '#543641',
-          900: '#472F38',
-          950: '#28191F',
-        },
-        violet: {
-          50: '#F8F2F4',
-          100: '#F0E4E8',
-          200: '#DFC9D1',
-          300: '#C6A2B0',
-          400: '#AC7C8E',
-          500: '#946274',
-          600: '#7C505F',
-          700: '#66414E',
-          800: '#543641',
-          900: '#472F38',
-          950: '#28191F',
-        },
-
-        accent: {
-          coral: '#B4453C',
-          amber: '#B9762A',
-          emerald: '#2F7D5A',
-          indigo: '#615A7C',
-          sky: '#446670',
-          violet: '#7C505F',
-        },
+        emerald: { 50: token('achieved-tint'), 100: token('achieved-tint'), 500: token('achieved'), 600: token('achieved'), 700: token('achieved-ink'), 900: token('achieved-ink') },
+        green: { 50: token('achieved-tint'), 500: token('achieved'), 600: token('achieved'), 700: token('achieved-ink') },
+        amber: { 50: token('emerging-tint'), 100: token('emerging-tint'), 400: token('emerging'), 500: token('emerging'), 600: token('emerging'), 700: token('emerging-ink'), 900: token('emerging-ink') },
+        rose: { 50: token('risk-tint'), 100: token('risk-tint'), 400: token('risk'), 500: token('risk'), 600: token('risk'), 700: token('risk-ink'), 900: token('risk-ink') },
+        red: { 50: token('risk-tint'), 500: token('risk'), 600: token('risk'), 700: token('risk-ink') },
+        orange: { 100: token('parent-tint'), 500: token('parent'), 600: token('parent'), 700: token('parent-ink') },
+        sky: { 50: token('clinician-tint'), 500: token('clinician'), 600: token('clinician'), 700: token('clinician-ink') },
+        indigo: { 50: token('clinician-tint'), 500: token('clinician'), 600: token('clinician'), 700: token('clinician-ink') },
+        purple: { 50: token('clinician-tint'), 500: token('clinician'), 600: token('clinician'), 700: token('clinician-ink') },
       },
       fontFamily: {
-        /* The Indic variables come first in the stack only under .lang-hi /
-           .lang-kn; see globals.css. */
-        sans: ['var(--font-sans)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-display)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-display)', 'var(--font-devanagari)', 'var(--font-kannada)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-plex)', 'IBM Plex Sans', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+        kn: ['var(--font-kannada)', 'Noto Sans Kannada', 'sans-serif'],
+        hi: ['var(--font-devanagari)', 'Noto Sans Devanagari', 'sans-serif'],
       },
       borderRadius: {
-        card: '1rem',
-        panel: '1.125rem',
-        frame: '1.375rem',
+        chip: '8px',
+        control: '12px',
+        card: '16px',
+        panel: '18px',
+        shell: '28px',
       },
-      boxShadow: {
-        subtle: '0 1px 2px 0 rgba(47, 74, 56, 0.04)',
-        card: '0 1px 2px 0 rgba(47, 74, 56, 0.04)',
-        elevated: '0 14px 34px -24px rgba(47, 74, 56, 0.45)',
-        frame: '0 22px 50px -30px rgba(47, 74, 56, 0.35)',
+      borderWidth: { 3: '3px' },
+      transitionTimingFunction: {
+        fill: 'cubic-bezier(.2,.7,.3,1)',
+        ring: 'cubic-bezier(.22,.85,.28,1)',
       },
-      minHeight: {
-        'touch-parent': '52px',
-        'touch-clinical': '46px',
+      keyframes: {
+        'sig-enter': {
+          from: { opacity: '0', transform: 'translateY(9px) scale(.985)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        'sig-glow': {
+          '0%': { opacity: '0', transform: 'scale(.86)' },
+          '40%': { opacity: '1' },
+          '100%': { opacity: '0', transform: 'scale(1.28)' },
+        },
+        'sig-toast': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
       },
+      animation: {
+        'sig-enter': 'sig-enter 220ms ease-out both',
+        'sig-glow': 'sig-glow 700ms ease-out',
+        'sig-toast': 'sig-toast 180ms ease-out both',
+      },
+      // Signal has NO shadows. These neutralise any that survive migration.
+      boxShadow: { subtle: 'none', card: 'none', elevated: 'none', frame: 'none' },
     },
   },
   plugins: [],
