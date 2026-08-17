@@ -3,91 +3,106 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   MilestonePath design tokens — "Warm Playroom Clinic" (direction 2b)
+   MilestonePath — "Signal"
 
-   Cream ground, sage for the clinician pathway, marigold for the parent
-   pathway. Token names are identical in light and dark; dark keeps the same
-   semantics and lightens/desaturates the hues so status colour never vibrates
-   against the dark surface. Brand sage moves up to #8FBF97 for 4.5:1 on
-   #191A14. Values are stored as space-separated RGB channels so Tailwind's
-   `rgb(var(--token) / <alpha-value>)` opacity modifiers keep working.
+   Fonts load via next/font in src/app/layout.tsx, not @import.
+   Colour tokens are RGB channel triplets so Tailwind's
+   `rgb(var(--token) / <alpha-value>)` opacity modifiers keep working and a
+   single `.dark` class flips the entire palette.
    ========================================================================== */
 
 :root {
-  /* Surfaces */
-  --surface-canvas: 255 249 236;   /* #FFF9EC */
-  --surface-raised: 255 255 255;   /* #FFFFFF */
-  --surface-sunken: 243 237 228;   /* #F3EDE4 */
-  --surface-tint: 255 252 243;     /* #FFFCF3 */
+  /* ---- surfaces & structure ---- */
+  --canvas: 255 253 248;        /* #FFFDF8  card + page surface */
+  --page: 229 226 216;          /* #E5E2D8  app background, empty track fills */
+  --ink: 6 40 43;               /* #06282B  borders, headers, primary buttons */
+  --ink-soft: 53 81 79;         /* #35514F  dividers inside ink surfaces */
+  --line: 213 208 195;          /* #D5D0C3  2px unselected control border */
+  --line-soft: 194 189 175;     /* #C2BDAF  checkbox rest border, dashed empties */
 
-  /* Ink */
-  --ink: 47 74 56;                 /* #2F4A38 */
-  --ink-body: 79 90 72;            /* #4F5A48 */
-  --ink-muted: 110 122 102;        /* #6E7A66 */
-  --ink-soft: 94 107 88;           /* #5E6B58 */
-  --ink-warm: 125 112 83;          /* #7D7053 */
-  --ink-invert: 255 255 255;       /* #FFFFFF */
+  /* ---- text ---- */
+  --body: 66 80 74;             /* #42504A  8.1:1 on canvas */
+  --muted: 90 102 96;           /* #5A6660  5.6:1 on canvas */
+  --muted-nav: 122 133 127;     /* #7A857F  4.6:1 on canvas */
 
-  /* Lines */
-  --line-warm: 242 228 201;        /* #F2E4C9 */
-  --line-strong: 232 217 188;      /* #E8D9BC */
-  --line-hair: 245 235 216;        /* #F5EBD8 */
-  --line-rule: 245 233 210;        /* #F5E9D2 */
+  /* ---- pathway · teal = clinician, coral = parent ---- */
+  --clinician: 20 128 122;      /* #14807A */
+  --clinician-tint: 220 239 236;/* #DCEFEC */
+  --clinician-ink: 12 95 90;    /* #0C5F5A  teal text on tint */
+  --clinician-dim: 127 166 161; /* #7FA6A1  teal-pathway text on ink */
+  --clinician-soft: 207 230 224;/* #CFE6E0  body text on teal fill */
+  --parent: 255 107 74;         /* #FF6B4A  FILL ONLY, never text */
+  --parent-tint: 255 231 224;   /* #FFE7E0 */
+  --parent-ink: 138 46 23;      /* #8A2E17  coral text on tint */
+  --parent-deep: 92 30 12;      /* #5C1E0C  body text on coral fill */
 
-  /* Pathways — sage means clinician, marigold means parent, everywhere */
-  --brand-600: 79 122 91;          /* #4F7A5B */
-  --brand-400: 127 169 138;        /* #7FA98A */
-  --brand-tint: 232 240 227;       /* #E8F0E3 */
-  --parent-600: 217 131 42;        /* #D9832A */
-  --parent-700: 150 96 27;         /* #96601B */
-  --parent-tint: 253 240 220;      /* #FDF0DC */
+  /* ---- status · reserved for achieved / emerging / needs-review ---- */
+  --achieved: 47 143 78;        /* #2F8F4E */
+  --achieved-tint: 228 242 231; /* #E4F2E7 */
+  --achieved-ink: 31 107 58;    /* #1F6B3A */
+  --emerging: 255 176 32;       /* #FFB020 */
+  --emerging-tint: 255 243 220; /* #FFF3DC */
+  --emerging-ink: 138 90 5;     /* #8A5A05 */
+  --risk: 214 64 47;            /* #D6402F */
+  --risk-tint: 251 230 227;     /* #FBE6E3 */
+  --risk-ink: 155 44 31;        /* #9B2C1F */
 
-  /* Status — reserved for achieved / emerging / risk only */
-  --achieved: 47 125 90;           /* #2F7D5A */
-  --achieved-tint: 241 245 233;    /* #F1F5E9 */
-  --achieved-ink: 67 83 58;        /* #43533A */
-  --emerging: 185 118 42;          /* #B9762A */
-  --emerging-tint: 251 241 221;    /* #FBF1DD */
-  --emerging-ink: 138 100 32;      /* #8A6420 */
-  --risk: 180 69 60;               /* #B4453C */
-  --risk-tint: 249 233 231;        /* #F9E9E7 */
-  --risk-ink: 150 56 48;           /* #963830 */
+  /* ---- motion tokens · nothing over 300ms except ring and glow ---- */
+  --dur-press: 110ms;
+  --dur-release: 160ms;
+  --dur-hover: 160ms;
+  --dur-fill: 180ms;
+  --dur-state: 180ms;
+  --dur-draw: 220ms;
+  --dur-enter: 220ms;
+  --dur-band: 200ms;
+  --dur-page: 240ms;
+  --dur-ring: 520ms;
+  --dur-glow: 700ms;
+  --stagger: 45ms;
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-fill: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-ring: cubic-bezier(0.22, 0.85, 0.28, 1);
 }
 
+/*
+ * Signal's dark variant is not drawn in the handoff (§6, "say the word and
+ * I'll draw it"). These values follow its stated direction — invert to `ink`
+ * as the ground with `canvas` as text, both pathway hues at raised weight —
+ * so the working dark mode is not lost mid-migration. Replace when drawn.
+ */
 .dark {
-  --surface-canvas: 25 26 20;      /* #191A14 */
-  --surface-raised: 34 35 26;      /* #22231A */
-  --surface-sunken: 44 45 35;      /* #2C2D23 */
-  --surface-tint: 31 32 24;        /* #1F2018 */
+  --canvas: 12 50 54;           /* #0C3236 */
+  --page: 6 40 43;              /* #06282B */
+  --ink: 255 253 248;           /* #FFFDF8 */
+  --ink-soft: 199 212 208;      /* #C7D4D0 */
+  --line: 53 81 79;             /* #35514F */
+  --line-soft: 42 68 66;        /* #2A4442 */
 
-  --ink: 247 247 236;              /* #F7F7EC */
-  --ink-body: 210 211 198;         /* #D2D3C6 */
-  --ink-muted: 168 172 154;        /* #A8AC9A */
-  --ink-soft: 168 172 154;         /* #A8AC9A */
-  --ink-warm: 156 161 146;         /* #9CA192 */
-  --ink-invert: 25 26 20;          /* #191A14 */
+  --body: 199 212 208;          /* #C7D4D0 */
+  --muted: 155 170 165;         /* #9BAAA5 */
+  --muted-nav: 127 145 140;     /* #7F918C */
 
-  --line-warm: 51 52 42;           /* #33342A */
-  --line-strong: 51 52 42;         /* #33342A */
-  --line-hair: 44 45 35;           /* #2C2D23 */
-  --line-rule: 51 52 42;           /* #33342A */
+  --clinician: 79 179 172;      /* raised weight */
+  --clinician-tint: 15 63 60;
+  --clinician-ink: 159 216 210;
+  --clinician-dim: 127 166 161;
+  --clinician-soft: 42 82 78;
+  --parent: 255 138 110;        /* raised weight */
+  --parent-tint: 74 32 24;
+  --parent-ink: 255 194 175;
+  --parent-deep: 255 224 214;
 
-  --brand-600: 143 191 151;        /* #8FBF97 */
-  --brand-400: 110 154 118;        /* #6E9A76 */
-  --brand-tint: 42 51 36;          /* #2A3324 */
-  --parent-600: 217 138 99;        /* #D98A63 */
-  --parent-700: 226 165 133;       /* #E2A585 */
-  --parent-tint: 58 43 34;         /* #3A2B22 */
-
-  --achieved: 111 175 122;         /* #6FAF7A */
-  --achieved-tint: 34 48 31;       /* #22301F */
-  --achieved-ink: 183 205 168;     /* #B7CDA8 */
-  --emerging: 217 162 87;          /* #D9A257 */
-  --emerging-tint: 51 40 26;       /* #33281A */
-  --emerging-ink: 230 200 138;     /* #E6C88A */
-  --risk: 224 119 108;             /* #E0776C */
-  --risk-tint: 56 32 30;           /* #38201E */
-  --risk-ink: 235 167 158;         /* #EBA79E */
+  --achieved: 87 185 122;
+  --achieved-tint: 23 48 31;
+  --achieved-ink: 168 221 184;
+  --emerging: 255 197 92;
+  --emerging-tint: 58 46 16;
+  --emerging-ink: 240 206 138;
+  --risk: 240 112 94;
+  --risk-tint: 58 26 22;
+  --risk-ink: 242 173 161;
 }
 
 /* ==========================================================================
@@ -95,125 +110,152 @@
    ========================================================================== */
 
 body {
-  color: rgb(var(--ink-body));
-  background: rgb(var(--surface-canvas));
+  color: rgb(var(--body));
+  background: rgb(var(--page));
   min-height: 100vh;
-  font-family: var(--font-sans), var(--font-devanagari), var(--font-kannada),
-    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-plex), 'IBM Plex Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-wrap: pretty;
 }
 
-/* Nunito at 800 carries page titles, card titles and large numerals — rounded
-   terminals give the warmth the parent side needs, and at 800 it still holds
-   authority in a clinical report. Instrument Sans carries all UI. Utilities
-   (font-sans) still win where a component opts a heading back into the UI face. */
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-display), var(--font-devanagari), var(--font-kannada),
-    system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.018em;
+/* Space Grotesk carries every heading and every numeral. */
+h1, h2, h3, h4 {
+  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: rgb(var(--ink));
 }
 
-/* The active language leads the stack, so Devanagari and Kannada glyphs are not
-   left to a fallback face. Devanagari and Kannada also have taller x-heights, so
-   Indic body copy takes 1.7 line-height instead of 1.6. */
-.lang-hi body,
-.lang-hi h1,
-.lang-hi h2,
-.lang-hi h3,
-.lang-hi h4 {
-  font-family: var(--font-devanagari), var(--font-display), var(--font-sans),
-    system-ui, sans-serif;
+/* Signal is border-led, not shadow-led.
+   Scoped away from focus rings: Tailwind's `ring-*` is a box-shadow, and a
+   blanket `* { box-shadow: none }` would silently delete every visible focus
+   indicator. Elevation is removed; focus is not. */
+:where(div, section, article, aside, header, footer, nav, li, figure, table):not(:focus-visible) {
+  box-shadow: none;
 }
 
-.lang-kn body,
-.lang-kn h1,
-.lang-kn h2,
-.lang-kn h3,
-.lang-kn h4 {
-  font-family: var(--font-kannada), var(--font-display), var(--font-sans),
-    system-ui, sans-serif;
+/* Indic locales: longer strings, looser leading, no negative tracking. */
+html[lang='kn'],
+html[lang='hi'] { --indic-leading: 1.7; }
+html[lang='kn'] body { font-family: var(--font-kannada), 'Noto Sans Kannada', sans-serif; }
+html[lang='hi'] body { font-family: var(--font-devanagari), 'Noto Sans Devanagari', sans-serif; }
+html[lang='kn'] *,
+html[lang='hi'] * {
+  line-height: var(--indic-leading);
+  letter-spacing: normal !important;
 }
-
-.lang-hi body,
-.lang-kn body {
-  line-height: 1.7;
+/* Chips, badges and buttons grow rather than clip. */
+html[lang='kn'] .sig-chip,
+html[lang='hi'] .sig-chip {
+  height: auto !important;
+  min-height: 46px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.7 !important;
 }
 
 ::selection {
-  background: rgb(var(--brand-600));
-  color: rgb(var(--ink-invert));
+  background: rgb(var(--clinician));
+  color: rgb(var(--canvas));
 }
 
 /* ==========================================================================
-   Component conveniences
+   Components & motion utilities
    ========================================================================== */
 
 @layer components {
-  /* 11px / 700 / 0.06em caps — tinted background only, never a status hue. */
+  /* Every number in the product is tabular. */
+  .sig-num {
+    font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+  }
+
   .eyebrow {
-    @apply text-[11px] font-bold uppercase tracking-[0.06em];
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em];
   }
 
-  /* Citations sit in an outlined pill, never tinted, so evidence never reads
-     as a status. */
-  .citation-pill {
-    @apply inline-flex items-center rounded-full border border-line-warm px-2.5 py-1.5
-           text-[11px] font-semibold text-ink-muted;
-  }
-
+  /* 2px focus ring, ink, offset — visible on every surface in both themes. */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/45
-           focus-visible:ring-offset-2 focus-visible:ring-offset-surface-canvas;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
+           focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
   }
 
-  /* Age-band chips scroll horizontally on phones without a visible scrollbar. */
+  /* Press feedback — transform only. */
+  .sig-press {
+    transition: transform var(--dur-release) var(--ease-out);
+  }
+  .sig-press:active {
+    transform: scale(0.97);
+    transition-duration: var(--dur-press);
+  }
+
+  /* Card hover: lift by 2px and darken the border. No shadow to grow. */
+  .sig-lift {
+    transition: transform var(--dur-hover) var(--ease-out),
+                border-color var(--dur-hover) var(--ease-out);
+  }
+  .sig-lift:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--ink));
+  }
+
+  /* Section / page transition. */
+  .sig-page {
+    animation: sig-enter var(--dur-page) var(--ease-out) both;
+  }
+
+  .sig-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .scroll-rail {
     @apply flex gap-2 overflow-x-auto pb-2;
     scrollbar-width: none;
   }
-  .scroll-rail::-webkit-scrollbar {
-    display: none;
+  .scroll-rail::-webkit-scrollbar { display: none; }
+}
+
+/* Reduced motion: everything lands on its final state immediately. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
+  .sig-press:active { transform: none; }
+  .sig-lift:hover { transform: none; }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: rgb(var(--surface-sunken));
-}
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--line-strong));
-  border-radius: 4px;
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgb(var(--page)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--line-soft)); border-radius: 4px; }
 
-/* Print Optimization for Clinical Reports */
+/* ==========================================================================
+   Print — reports on white with the ink borders intact
+   ========================================================================== */
+
 @media print {
   body {
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #06282b !important;
     font-size: 11pt !important;
   }
-  nav, footer, .no-print, button, select {
+  nav, footer, .no-print, button, select, .sig-bottom-nav {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
-  }
-  .print-page-break {
-    page-break-before: always;
-  }
-  .shadow-card, .shadow-elevated, .shadow-subtle, .shadow-frame {
-    box-shadow: none !important;
-    border: 1px solid #F2E4C9 !important;
+  .print-only { display: block !important; }
+  .print-page-break { page-break-before: always; }
+
+  /* The manuals teach the controls, so their figures must keep them. */
+  .manual button,
+  .manual select,
+  .manual .manual-figure button {
+    display: inline-flex !important;
   }
 }

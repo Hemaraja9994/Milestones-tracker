@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
-import { Nunito, Instrument_Sans, Noto_Sans_Devanagari, Noto_Sans_Kannada } from 'next/font/google';
+import {
+  Space_Grotesk,
+  IBM_Plex_Sans,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Kannada,
+} from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -8,32 +13,33 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import LanguageShell from '@/components/layout/LanguageShell';
 
-/* Nunito 700/800 carries display type; Instrument Sans carries all UI.
-   Noto Sans Devanagari and Noto Sans Kannada cover Hindi and Kannada. */
-const nunito = Nunito({
+/* Space Grotesk carries every heading and numeral; IBM Plex Sans carries all
+   UI copy. Noto covers Devanagari and Kannada. next/font self-hosts, so there
+   is no <link> to Google Fonts and no layout shift. */
+const display = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['700', '800'],
-  variable: '--font-display',
+  weight: ['500', '600', '700'],
+  variable: '--font-space-grotesk',
   display: 'swap',
 });
 
-const instrumentSans = Instrument_Sans({
+const plex = IBM_Plex_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-sans',
+  variable: '--font-plex',
   display: 'swap',
 });
 
-const notoDevanagari = Noto_Sans_Devanagari({
+const devanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
   weight: ['400', '600'],
   variable: '--font-devanagari',
   display: 'swap',
 });
 
-const notoKannada = Noto_Sans_Kannada({
+const kannada = Noto_Sans_Kannada({
   subsets: ['kannada'],
-  weight: ['400', '600'],
+  weight: ['400', '600', '700'],
   variable: '--font-kannada',
   display: 'swap',
 });
@@ -70,7 +76,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`lang-en ${nunito.variable} ${instrumentSans.variable} ${notoDevanagari.variable} ${notoKannada.variable}`}
+      className={`lang-en ${display.variable} ${plex.variable} ${devanagari.variable} ${kannada.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-surface-canvas text-ink-body antialiased">
         <ThemeProvider>
