@@ -23,9 +23,8 @@ export type MilestoneWithMedia = Milestone & MilestoneMedia;
  * `mx_` so they cannot collide with the existing `m_` ids and saved assessment
  * records keyed by milestone id stay valid.
  *
- * NOTE: `src/lib/calculationEngine.ts` is frozen and still scores only
- * COMPREHENSIVE_MILESTONES, so the estimated receptive / expressive / auditory
- * ages do not yet account for the expansion entries.
+ * `src/lib/calculationEngine.ts` reads this list too, so estimated ages, domain
+ * mastery and red-flag detection all score the full set.
  */
 export const ALL_MILESTONES: MilestoneWithMedia[] = [
   ...COMPREHENSIVE_MILESTONES,
