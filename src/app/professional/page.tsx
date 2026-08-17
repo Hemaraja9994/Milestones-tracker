@@ -7,7 +7,9 @@ import { useChild } from '@/context/ChildContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { computeClinicalSnapshot } from '@/lib/calculationEngine';
+import { isSampleChild } from '@/lib/storage';
 import { ChildProfile, AssessmentRecord } from '@/types';
+import ChildProfileForm from '@/components/parent/ChildProfileForm';
 import { Badge, Button, GaugeRow, Stat } from '@/components/ui/Primitives';
 
 export default function ProfessionalDashboard() {
@@ -16,16 +18,6 @@ export default function ProfessionalDashboard() {
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
-
-  // New Child Form State
-  const [nameOrInitials, setNameOrInitials] = useState('');
-  const [dob, setDob] = useState('2023-01-01');
-  const [gestationalWeeks, setGestationalWeeks] = useState(40);
-  const [languagesStr, setLanguagesStr] = useState('Kannada, English');
-  const [medicalNotes, setMedicalNotes] = useState('');
-  const [hearingStatus, setHearingStatus] = useState<'passed' | 'referred' | 'pending' | 'unknown'>(
-    'passed'
-  );
 
   const filteredChildren = childrenList.filter(
     (child) =>
@@ -66,27 +58,10 @@ export default function ProfessionalDashboard() {
       ) * 1.15
     : 1;
 
-  const handleCreateChild = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nameOrInitials.trim()) return;
-
-    const newChild: ChildProfile = {
-      id: `child_${Date.now()}`,
-      nameOrInitials: nameOrInitials.trim(),
-      dateOfBirth: dob,
-      gestationalWeeks: Number(gestationalWeeks),
-      primaryLanguages: languagesStr.split(',').map((s) => s.trim()).filter(Boolean),
-      medicalNotes,
-      hearingScreeningStatus: hearingStatus,
-      riskFactors: Number(gestationalWeeks) < 37 ? [`Prematurity (${gestationalWeeks} wks)`] : [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+  const handleCreateChild = (newChild: ChildProfile) => {
     createOrUpdateChild(newChild);
+    setActiveChild(newChild);
     setShowModal(false);
-    setNameOrInitials('');
-    setMedicalNotes('');
   };
 
   const handleSummaryChange = (value: string) => {
@@ -194,6 +169,7 @@ export default function ProfessionalDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5">
+                      {isSampleChild(child.id) && <Badge variant="default">Sample</Badge>}
                       {child.hearingScreeningStatus === 'referred' && (
                         <Badge variant="danger">{t.common.red_flag}</Badge>
                       )}
@@ -328,82 +304,11 @@ export default function ProfessionalDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateChild} className="space-y-4 text-[13px]">
-              <Field label={`${t.common.child_name} *`}>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Aarav K. or Patient #1042"
-                  value={nameOrInitials}
-                  onChange={(e) => setNameOrInitials(e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label={`${t.common.dob} *`}>
-                  <input
-                    type="date"
-                    required
-                    value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-                <Field label={`${t.common.gestational_age} (Weeks)`}>
-                  <input
-                    type="number"
-                    min="24"
-                    max="42"
-                    value={gestationalWeeks}
-                    onChange={(e) => setGestationalWeeks(Number(e.target.value))}
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-
-              <Field label={`${t.common.primary_languages} (comma-separated)`}>
-                <input
-                  type="text"
-                  placeholder="e.g. Kannada, English, Hindi"
-                  value={languagesStr}
-                  onChange={(e) => setLanguagesStr(e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label={t.common.hearing_status}>
-                <select
-                  value={hearingStatus}
-                  onChange={(e: any) => setHearingStatus(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="passed">Passed (OAE / ABR normal)</option>
-                  <option value="referred">Referred / Follow-up Needed</option>
-                  <option value="pending">Pending</option>
-                  <option value="unknown">Unknown</option>
-                </select>
-              </Field>
-
-              <Field label="Medical / Developmental History Notes">
-                <textarea
-                  rows={2}
-                  placeholder="e.g. NICU history, family history of speech delay, otitis media history..."
-                  value={medicalNotes}
-                  onChange={(e) => setMedicalNotes(e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-
-              <div className="flex justify-end gap-2.5 border-t border-line-rule pt-4">
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>
-                  {t.common.cancel}
-                </Button>
-                <Button type="submit" variant="primary" size="sm">
-                  {t.common.save}
-                </Button>
-              </div>
-            </form>
+            <ChildProfileForm
+              variant="clinical"
+              onSubmit={handleCreateChild}
+              onCancel={() => setShowModal(false)}
+            />
           </div>
         </div>
       )}

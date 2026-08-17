@@ -3,6 +3,21 @@ import { ChildProfile, AssessmentRecord } from '@/types';
 const CHILDREN_KEY = 'milestonepath_children_v1';
 const ASSESSMENTS_KEY = 'milestonepath_assessments_v1';
 
+/**
+ * The seeded profiles below are demonstration data, not the user's own child.
+ * They are marked here so the UI can label them as samples instead of letting a
+ * parent believe the app is already tracking their child.
+ */
+export const SAMPLE_CHILD_IDS = [
+  'child_aarav_24m',
+  'child_ananya_36m',
+  'child_rohan_6m_preterm',
+] as const;
+
+export function isSampleChild(childId: string): boolean {
+  return (SAMPLE_CHILD_IDS as readonly string[]).includes(childId);
+}
+
 export const INITIAL_CHILDREN: ChildProfile[] = [
   {
     id: 'child_aarav_24m',

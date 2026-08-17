@@ -8,10 +8,12 @@ import { useLanguage } from '@/context/LanguageContext';
 import { calculateChildAges } from '@/lib/correctedAge';
 import { ALL_MILESTONES } from '@/data/allMilestones';
 import { AGE_BANDS } from '@/data/ageBands';
-import { MilestoneStatus, AssessmentRecord } from '@/types';
+import { isSampleChild } from '@/lib/storage';
+import { ChildProfile, MilestoneStatus, AssessmentRecord } from '@/types';
 import ParentMilestoneCard from '@/components/parent/ParentMilestoneCard';
 import MilestoneTickTracker from '@/components/parent/MilestoneTickTracker';
-import { NotePanel } from '@/components/ui/Primitives';
+import FirstRunPanel from '@/components/parent/FirstRunPanel';
+import { Badge, NotePanel } from '@/components/ui/Primitives';
 
 const DOMAIN_FILTERS: { value: string; label: string }[] = [
   { value: 'all', label: 'All Skills' },
@@ -24,10 +26,30 @@ const DOMAIN_FILTERS: { value: string; label: string }[] = [
 ];
 
 export default function ParentMilestoneTracker() {
-  const { childrenList, activeChild, assessments, saveCurrentAssessment } = useChild();
+  const { childrenList, activeChild, setActiveChild, createOrUpdateChild, assessments, saveCurrentAssessment } =
+    useChild();
   const { language, t } = useLanguage();
 
-  const child = activeChild || childrenList[0];
+  const [browsingSample, setBrowsingSample] = useState(false);
+
+  const ownChildren = childrenList.filter((c) => !isSampleChild(c.id));
+  const sampleChildren = childrenList.filter((c) => isSampleChild(c.id));
+
+  /* A tick is only persisted when there is a child to attach it to, so never
+     show the checklist without one — otherwise a parent ticks milestones that
+     silently go nowhere. */
+  const child =
+    (activeChild && (!isSampleChild(activeChild.id) || browsingSample) ? activeChild : null) ||
+    ownChildren[0] ||
+    (browsingSample ? childrenList[0] : null);
+
+  const needsFirstRun = !child;
+
+  const handleCreate = (newChild: ChildProfile) => {
+    createOrUpdateChild(newChild);
+    setActiveChild(newChild);
+    setBrowsingSample(false);
+  };
 
   const ageResult = child
     ? calculateChildAges(child.dateOfBirth, child.gestationalWeeks)
@@ -42,6 +64,11 @@ export default function ParentMilestoneTracker() {
 
   const [selectedAgeBand, setSelectedAgeBand] = useState<number>(ageResult.recommendedAgeBandMonths);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
+
+  // A newly added child changes the recommended band; follow it.
+  React.useEffect(() => {
+    setSelectedAgeBand(ageResult.recommendedAgeBandMonths);
+  }, [child?.id, ageResult.recommendedAgeBandMonths]);
 
   const existingAssessment = assessments.find((a) => a.childId === child?.id);
   const [statuses, setStatuses] = useState<Record<string, MilestoneStatus>>(
@@ -135,6 +162,33 @@ export default function ParentMilestoneTracker() {
       </div>
 
       <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-[18px] py-7 sm:px-6 lg:px-9 lg:py-9">
+        {needsFirstRun ? (
+          <FirstRunPanel
+            onCreate={handleCreate}
+            sampleCount={sampleChildren.length}
+            onBrowseSample={
+              sampleChildren.length
+                ? () => {
+                    setActiveChild(sampleChildren[0]);
+                    setBrowsingSample(true);
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <>
+        {child && isSampleChild(child.id) && (
+          <NotePanel tone="emerging" className="flex flex-wrap items-center gap-3">
+            <Badge variant="warning">Sample profile</Badge>
+            <span className="flex-1">
+              You are viewing <strong>{child.nameOrInitials}</strong>, a demonstration profile.
+              Anything you tick here is not your child&apos;s record.
+            </span>
+            <Link href="/parent" className="focus-ring font-semibold text-parent-700 underline">
+              Start with my own child
+            </Link>
+          </NotePanel>
+        )}
         <MilestoneTickTracker statuses={statuses} />
 
         {/* Age band selector sits under the tracker: the rail shows the whole
@@ -244,6 +298,8 @@ export default function ParentMilestoneTracker() {
           >
             {t.parent.share_with_doctor}
           </Link>
+        )}
+          </>
         )}
       </div>
     </div>
