@@ -1,4 +1,9 @@
 import { ChildProfile, AssessmentRecord } from '@/types';
+import {
+  clearAllAshaResponses,
+  deleteAshaResponses,
+  deleteAshaResponsesFor,
+} from './ashaStorage';
 
 const CHILDREN_KEY = 'milestonepath_children_v1';
 const ASSESSMENTS_KEY = 'milestonepath_assessments_v1';
@@ -141,10 +146,12 @@ export function loadSampleChildren(): void {
 /** Remove the demonstration profiles and everything recorded against them. */
 export function removeSampleChildren(): void {
   if (typeof window === 'undefined') return;
+  const removed = getStoredChildren().filter((c) => isSampleChild(c.id)).map((c) => c.id);
   const children = getStoredChildren().filter((c) => !isSampleChild(c.id));
   localStorage.setItem(CHILDREN_KEY, JSON.stringify(children));
   const assessments = getStoredAssessments().filter((a) => !isSampleChild(a.childId));
   localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
+  deleteAshaResponsesFor(removed);
 }
 
 /**
@@ -155,6 +162,7 @@ export function clearAllStoredData(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(CHILDREN_KEY);
   localStorage.removeItem(ASSESSMENTS_KEY);
+  clearAllAshaResponses();
 }
 
 export function saveChild(child: ChildProfile): void {
@@ -174,9 +182,10 @@ export function deleteChild(childId: string): void {
   const current = getStoredChildren().filter(c => c.id !== childId);
   localStorage.setItem(CHILDREN_KEY, JSON.stringify(current));
 
-  // Also remove assessments
+  // Also remove assessments and any ASHA checklist responses
   const assessments = getStoredAssessments().filter(a => a.childId !== childId);
   localStorage.setItem(ASSESSMENTS_KEY, JSON.stringify(assessments));
+  deleteAshaResponses(childId);
 }
 
 export function getStoredAssessments(): AssessmentRecord[] {

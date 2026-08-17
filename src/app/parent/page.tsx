@@ -176,6 +176,27 @@ export default function ParentPortalHome() {
               </NotePanel>
             )}
 
+            {/* Two parallel checklists: the full developmental set, and ASHA's
+                communication milestones. Neither replaces the other. */}
+            <Link
+              href="/parent/communication"
+              className="focus-ring flex items-center justify-between gap-4 rounded-card border border-line-warm border-l-4 border-l-parent-600 bg-surface-raised p-5 transition-colors hover:bg-surface-tint sm:p-6"
+            >
+              <span>
+                <span className="eyebrow block text-parent-600">
+                  American Speech-Language-Hearing Association
+                </span>
+                <span className="mt-2 block font-sans text-[15px] font-semibold text-ink">
+                  Communication Milestones checklist
+                </span>
+                <span className="mt-1.5 block max-w-[62ch] text-[13px] leading-[1.6] text-ink-muted">
+                  ASHA&apos;s hearing, speech and language milestones for birth to 24 months —
+                  answered Yes, Not yet, or Not sure.
+                </span>
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={2.2} />
+            </Link>
+
             <MilestoneTickTracker statuses={statuses} />
 
             {snapshot && (
